@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#Rashed
+data/
+chexpert.pkl
+
 # C extensions
 *.so
 
