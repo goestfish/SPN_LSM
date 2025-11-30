@@ -86,11 +86,14 @@ class Decoder(nn.Module):
 
 
 class VAE(nn.Module):
-    def __init__(self, in_channels=1, latent_dim=62, img_size=128):
+    def __init__(self, in_channels=1, latent_dim=62, img_size=128, num_classes = 2):
         super().__init__()
+        self.latent_dim = latent_dim
         self.encoder = Encoder(in_channels, latent_dim)
         self.decoder = Decoder(in_channels, latent_dim)
 
+        # classifier head to match TF pipeline - dennis
+        self.classifier = nn.Linear(latent_dim, num_classes)
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -100,8 +103,27 @@ class VAE(nn.Module):
         mu, logvar = self.encoder(x)
         z = self.reparameterize(mu, logvar)
         x_recon = self.decoder(z)
-        return x_recon, mu, logvar
-
+        logits = self.classifier(mu)
+        return x_recon, mu, logvar, logits
+    def clf_model(self):
+        # provide latent embedding extraction
+        class LatentExtractor(nn.Module):
+            def __init__(self, parent):
+                super().__init__()
+                self.encoder = parent.encoder
+            def forward(self, x):
+                mu, logvar = self.encoder(x)
+                return mu
+        return LatentExtractor(self)
+    def vae_rec(self, x):
+        # reconstruction-only method. I don't think this'll be used since it's in CNN_SPN but just in case.
+        self.eval()
+        with torch.no_grad():
+            x = torch.tensor(x).float()
+            if x.ndim == 3:
+                x = x.unsqueeze(0)
+            recon, _, _, = self.forward(x)
+        return recon.cpu().numpy()
 
 def vae_loss(recon_x, x, mu, logvar):
     recon_loss = F.mse_loss(recon_x, x, reduction='sum')
@@ -133,3 +155,5 @@ def test_vae(model, dataloader, device):
             loss = vae_loss(recon_x, x, mu, logvar)
             total_loss += loss.item()
     return total_loss / len(dataloader.dataset)
+
+

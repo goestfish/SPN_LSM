@@ -1,6 +1,4 @@
-#import tensorflow as tf
-import torch as torch
-import torch.nn as nn
+import tensorflow as tf
 import pickle as pkl
 import matplotlib.pyplot as plt
 import random
@@ -19,84 +17,40 @@ import numpy as np
 
 
 def load_VAE_model( add_info, num_classes, input_shape,data_path_fold,params,path=''):
-    """
-    Loads  VAE model
-    Args:
-        add_info (bool): whether additional info channels are used 
-        num_classes (int): number of classes in dataset 
-        input_shape (tuple): shape of input images (C, H, W)
-        data_path_fold (str): path to fold directory
-        params (obj): VAE hyperparameters
-        path (str): optional root path
-
-    Returns:
-        vae_model: loaded VAE pytorch model
-    """
     vae_save_path=data_path_fold+'vae_checkpoints_copy/tf_ckpts_last'
     print('TODO _copy')
     # 1. load vae:
-    # params,add_info,num_classes,input_shape,checkpoint_path,path='')
-    vae_model = load_VAE(
-        params = params, 
-        add_info = add_info, 
-        num_classes = num_classes, 
-        input_shape = input_shape, 
-        checkpoint_path = vae_save_path,
-        path = path)
+    vae_model = load_VAE(params, add_info, num_classes, input_shape, vae_save_path,path)
     return vae_model
 
+
+
 def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''):
-    """
-    Loads a PyTorch CNN-SPN model, its corresponding VAE embedding model, and SPN structure.
+    vae_save_path=data_path_fold+'vae_checkpoints/tf_ckpts_last'
+    checkpoint_path_cnn_spn = data_path_fold + 'cnn_spn_checkpoints'
 
-    Args:
-        add_info (bool): whether additional info channels are used 
-        num_classes (int): number of output classes
-        input_shape (tuple): shape of input images (C, H, W)
-        data_path_fold (str): path to fold directory
-        params (obj): models hyperparameters
-        path (str): optional root path
-
-    Returns:
-        cnn_spn (nn.Module): Fully loaded PyTorch CNN+SPN model.
-    """
-    vae_ckpt_path=data_path_fold+'vae_checkpoints/pt_ckpts_last'
-    cnn_spn_ckpt_path = data_path_fold + 'cnn_spn_checkpoints'
 
     # 1. load vae:
-    vae_model = load_VAE(
-        params = params, 
-        add_info = add_info, 
-        num_classes = num_classes, 
-        input_shape = input_shape, 
-        checkpoint_path = vae_ckpt_path,
-        path = path)
+    vae_model = load_VAE(params, add_info, num_classes, input_shape, vae_save_path,path)
     # 2. load spn_structure
     spn_data=pkl.load(open(data_path_fold+ 'spn.pkl', 'rb'))
     spn_clf=spn_data['spn_x']
     spn_input_shape=spn_data['data_shape']
     label_ids=spn_data['label_ids']
 
-    spn_x_copy, all_spn_x_y, all_spn_x_y_dicts, all_prior, all_spn_x_y_model = \
-        create_tf_spn_parts(
-            spn_x=spn_clf,
-            data_shape=spn_input_shape,
-            label_ids=label_ids,
-            trainable_leaf=params.fine_tune_leafs)
-    # 3. Prepare embedding network
-    # Comment out Tensorflow equivalent, replace with pytorch
+    spn_x_copy, all_spn_x_y, all_spn_x_y_dicts, all_prior, all_spn_x_y_model = create_tf_spn_parts(spn_x=spn_clf,
+                                                                                                   data_shape=spn_input_shape,
+                                                                                                   label_ids=label_ids,
+                                                                                                   trainable_leaf=params.fine_tune_leafs)
+
     decoder = None
     if params.use_VAE:
         cnn_embedding = vae_model.clf_model()
         if params.VAE_fine_tune:
             decoder = vae_model.decoder
     else:
-        try:
-            cnn_layer_out = vae_model.get_layer('flatten').output
-            #cnn_embedding = tf.keras.Model(inputs=vae_model.input, outputs=cnn_layer_out)
-            cnn_embedding = nn.Module(inputs=vae_model.input, outputs=cnn_layer_out)
-        except:
-            raise NotImplementedError("Non-VAE embedding not yet implemented for PyTorch version. Need to get CNN_functions.load_vae() flatten layer first.")
+        cnn_layer_out = vae_model.get_layer('flatten').output
+        cnn_embedding = tf.keras.Model(inputs=vae_model.input, outputs=cnn_layer_out)
 
 
     # 3. load cnn_spn
@@ -111,21 +65,22 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
                             VAE_fine_tune=params.VAE_fine_tune,
                             decoder=decoder,
                             loss_weights=params.loss_weights,
-                            load_pretrain_model=params.load_pretrain_model,
-                            clf_mlp=vae_model.classifier)
+                            load_pretrain_model=params.load_pretrain_model,clf_mlp=vae_model.classifier)
 
-    # Load checkpoint
-    #ckpt_cnn_spn = tf.train.Checkpoint(step=tf.Variable(1), optimizer=cnn_spn.optimizer, net=cnn_spn)
-    #manager_cnn_spn = tf.train.CheckpointManager(ckpt_cnn_spn, checkpoint_path_cnn_spn, max_to_keep=1)
+    ckpt_cnn_spn = tf.train.Checkpoint(step=tf.Variable(1), optimizer=cnn_spn.optimizer, net=cnn_spn)
+    manager_cnn_spn = tf.train.CheckpointManager(ckpt_cnn_spn, checkpoint_path_cnn_spn, max_to_keep=1)
 
-    #ckpt_cnn_spn.restore(manager_cnn_spn.latest_checkpoint)
-    try: 
-        ckpt_state = torch.load(cnn_spn_ckpt_path, map_location="cpu")
-        cnn_spn.load_state_dict(ckpt_state)
-        print(f"Loaded CNN+SPN checkpoint from {cnn_spn_ckpt_path}")
-    except FileNotFoundError:
-        print("WARNING: No CNN+SPN checkpoint found. Using randomly initialized weights.")
+
+    ckpt_cnn_spn.restore(manager_cnn_spn.latest_checkpoint)
+
+
     return cnn_spn
+
+
+
+
+
+
 
 def plot_image_grid(images, ax, title,cmap='gray', alpha=1.0):
     """Helper function to plot a 4x4 grid of images."""
