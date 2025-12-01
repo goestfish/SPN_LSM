@@ -106,3 +106,5 @@ def log_sum_to_tf_graph(node, children, data_placeholder=None, variable_dict=Non
 
     return  layer(children)
 
+
+
