@@ -20,7 +20,6 @@ def build_toy_spn():
     p0 = Product(children=[g00, g10])
     p1 = Product(children=[g01, g11])
 
-    # sum 节点（root）
     root = Sum(weights=[0.4, 0.6], children=[p0, p1])
 
     return root

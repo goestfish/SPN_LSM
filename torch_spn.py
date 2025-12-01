@@ -35,7 +35,6 @@ def torch_graph_to_gaussian(node, torchvars):
 def torch_graph_to_categorical(node, torchvar):
     with torch.no_grad():
         p = torch.softmax(torchvar, dim=0).cpu().numpy()
-        # 加 1e-3 防止 0
         node.p = (p + 1e-3).tolist()
 
 
