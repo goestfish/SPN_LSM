@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.model_selection import KFold
 
-from CNN_SPN import CNN_SPN_Parts, test_model_SPN_MLP
+from torch_CNN_SPN import CNN_SPN_Parts, test_model_SPN_MLP
 from CNN_functions import load_VAE
 from end_to_end_train import load_dataset
-from tf2_spn import create_tf_spn_parts
+from torch_spn import create_torch_spn_parts
 import numpy as np
 
 
@@ -77,12 +77,13 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
     spn_input_shape=spn_data['data_shape']
     label_ids=spn_data['label_ids']
 
+    #torch spn
     spn_x_copy, all_spn_x_y, all_spn_x_y_dicts, all_prior, all_spn_x_y_model = \
-        create_tf_spn_parts(
+        create_torch_spn_parts(
             spn_x=spn_clf,
-            data_shape=spn_input_shape,
             label_ids=label_ids,
-            trainable_leaf=params.fine_tune_leafs)
+            trainable_leaf=params.fine_tune_leafs,
+        )
     # 3. Prepare embedding network
     # Comment out Tensorflow equivalent, replace with pytorch
     decoder = None
