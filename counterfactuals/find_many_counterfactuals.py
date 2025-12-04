@@ -1,7 +1,9 @@
 from counterfactuals.analyse_model import load_model, load_VAE_model
 import os
-import numpy as np
+import sys
+sys.path.append('../')
 
+import numpy as np
 from end_to_end_train import load_dataset
 import pickle as pkl
 import matplotlib.patches as patches
@@ -174,18 +176,66 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
         else:
             raise ValueError("model_type must be either 'MLP' or 'SPN'")
     # Backprop on z_prime
-
+    loss.backward()
+    optimizer.step()
     # Evaluate switching condition
+    with torch.no_grad():
+        argmax_vals = torch.argmax(pred_logits, dim=1).cpu().numpy()
+        argmax_mean = np.mean(argmax_vals)
 
+        # if opposite_class = 1 & mean >= 0.5 OR opposite_class = 0 & mean <= 0.5
+        if not switch:
+            # could combine these two conditions into the same if statement but this is more readable?
+            if opposite_class and argmax_mean >= 0.5: 
+                switch = True
+                label_switch_step = step
+            elif (not opposite_class) and arg_max_mean <= 0.5:
+                switch = True
+                label_switch_step = step
+            # else switch stays False
     # if last step, gather diagnostics
+    if step == num_steps - 1:
+        with torch.no_grad():
+            argmax = argmax_vals
+            loss_val = loss.detach().cpu().item()
+            # log_pred - used nefgative per-sample test; take mean
+            if isinstance(loss_pred, torch.Tensor):
+                try:
+                    log_pred_val = log_pred.mean().cpu().numpy()
+                except Exception:
+                    log_pred_val = float(log_pred)
+            else:
+                log_pred_val = float(log_pred)
+            distance_val = distance.detach().cpu().numpy()
+            p_z_val = p_z.detach().cpu().numpy() if torch.is_tensor(p_z) else np.array(p_z)
+            arg_max_mean = float(argmax_mean)
+            distance_mean = float(np.mean(distance_val))
+            p_z_mean = float(np.mean(p_z_val)) if np.size(p_z_val) else float(p_z_val)
+            title_info = f"New y:{arg_max_mean:.0f}; orginal y:{int(y[0])}; MSE{distance_mean:.2f}; log(p(z)):{p_z_mean:.2f}"            
 
     # After optimization, reconstruct images from z_prime and z
-
+    with torch.no_grad():
+        # make sure z_prime is on the device and detach
+        z_prime_out = z_prime.detach()
+        z_out = z.detach()
+        reconstructions = cnn_spn_model.reconstruct(z_prime_out) # expecting a tensor here
+        rec_z = cnn_spn_model.reconstruct(z_out)
     # convert outpuits to numpy for later stuff that expects numpy
-
+    def to_numpy(x):
+        if torch.is_tensor(x):
+            return x.detach().cpu().numpy()
+        return np.asarray(x)
+    reconstructions_np = to_numpy(reconstructions)
+    rec_z_np = to_numpy(rec_z)
+    z_prime_np = to_numpy(z_prime_out)
+    z_np = to_numpy(z_out)
+    pred_np = to_numpy(pred_logits.detach()) if 'pred_logits' in locals() else None
+    distance_np = to_numpy(distance)
+    arg_max_np = np.asarray(arg_max) if arg_max is not None else None
+    p_z_np = p_z_val if p_z_val is not None else None
     
     print('Rec min max',np.min(rec_z),np.max(rec_z))
-    return reconstructions.numpy(),rec_z.numpy(),z_prime.numpy(),z.numpy(),title_info,distance,arg_max,loss,log_pred,p_z,label_switch_step,pred.numpy()
+    return reconstructions_np, rec_z_np,z_prime_np,z_np,title_info,distance_np,arg_max_np,loss_val,log_pred_val,p_z_np,label_switch_step,pred_np
 
 
 def create_counterfactual_data(plot_path,num_imgs,input_data,bb_box_coordinates,cnn_spn_model,
@@ -204,11 +254,21 @@ def create_counterfactual_data(plot_path,num_imgs,input_data,bb_box_coordinates,
 
         X = np.repeat(x, replicates, axis=0)
         additional_info = np.repeat(add_info_data, replicates, axis=0)
-        pred = cnn_spn_model.model_execution_X(X, additional_info, training=False)
-        mean_cls=np.mean(np.argmax(pred.numpy(),axis=-1))
+        # handle tensor or numpy
+        if not isinstance(X, torch.Tensor):
+            pred = cnn_spn_model.model_execution_X(torch.tensor(X, dtype=torch.float32), training = False)
+        else:
+            pred = cnn_spn_model.model_execution_X(X, additional_info, training=False)
+        #        pred = cnn_spn_model.model_execution_X(torch.tensor(X, dtype=torch.float32)) if not isinstance(X, torch.Tensor) else cnn_spn_model.model_execution_X(X)
+        # numpy for argmax
+        if torch.is_tensor(pred):
+            pred_np = pred.detach().cpu().numpy()
+        else:
+            pred_np = np.asarray(pred)
+        mean_cls=np.mean(np.argmax(pred_np,axis=-1))
         opposite_class = int((round(mean_cls)+ 1) % 2)
-
-        reconstructions, rec_z, title_info, distance, arg_max, loss, log_pred, p_z,label_switch_step = get_counterfactual_infos(
+        # return reconstructions_np, rec_z_np,z_prime_np,z_np,title_info,distance_np,arg_max_np,loss_val,log_pred_val,p_z_np,label_switch_step,pred_np
+        reconstructions, rec_z, z_prime, z, title_info, distance, arg_max, loss, log_pred, p_z,label_switch_step, pred_out = get_counterfactual_infos(
             cnn_spn_model, X, additional_info, opposite_class, y, model_name,opt_weights,learning_rate = learning_rate,num_steps =num_steps)
 
         all_data.append((reconstructions, rec_z, title_info, distance, arg_max, loss, log_pred, p_z, opposite_class,

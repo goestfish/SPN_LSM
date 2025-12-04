@@ -1,4 +1,7 @@
 #import tensorflow as tf
+import os, sys
+#sys.path.append('../')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import torch as torch
 import torch.nn as nn
 import pickle as pkl
