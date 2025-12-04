@@ -1,7 +1,9 @@
 from counterfactuals.analyse_model import load_model, load_VAE_model
 import os
-import numpy as np
+import sys
+sys.path.append('../')
 
+import numpy as np
 from end_to_end_train import load_dataset
 import pickle as pkl
 import matplotlib.patches as patches

@@ -12,7 +12,8 @@ from sklearn.metrics import accuracy_score
 from sklearn import metrics as sk_metrics
 from sklearn.metrics import balanced_accuracy_score
 import gc
-from VAE import Resnet_VAE, make_pretrain_encoder
+#from VAE import Resnet_VAE, make_pretrain_encoder
+from VAE import make_pretrain_encoder
 from utils import data_to_batch
 import sys
 tf.random.set_seed(0)
