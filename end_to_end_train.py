@@ -5,7 +5,8 @@ from SPN_functions import create_SPN
 import pickle as pkl
 from torch_CNN_SPN import  CNN_SPN_Parts, test_model_no_mpe, train_model_parts
 from spn.algorithms.Statistics import get_structure_stats
-from tf2_spn import create_tf_spn_parts
+from torch_spn import create_torch_spn_parts
+#from tf2_spn import create_tf_spn_parts
 import os
 import gc
 import shutil
@@ -53,9 +54,13 @@ def SPN_structure_train(grid_params,model, layer_names, train_dataset, test_data
     # normalize embedding:
 
     [train_embedding, test_embedding] = embedding_arr
+    if train_embedding.ndim > 2:
+        train_embedding = train_embedding.reshape(train_embedding.shape[0], -1)
+        test_embedding = test_embedding.reshape(test_embedding.shape[0], -1)
+
     if grid_params.use_add_info:
         print(other_info[0].shape)
-        train_embedding=np.concatenate([train_embedding,other_info[0]],axis=-1)
+        train_embedding = np.concatenate([train_embedding, other_info[0]], axis=-1)
         test_embedding = np.concatenate([test_embedding, other_info[1]], axis=-1)
 
     # 3. create spn structure +evaluate SPN structure
@@ -192,10 +197,9 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
         else:
             spn_input_shape=(last_num_filters + 1,)
 
-        spn_x_copy,all_spn_x_y,all_spn_x_y_dicts,all_prior,all_spn_x_y_model= create_tf_spn_parts(spn_x=spn_clf,
-                                                                                                  data_shape=spn_input_shape,
-                                                                                                  label_ids=label_ids
-                                                                                                  ,trainable_leaf=grid_params.fine_tune_leafs)
+        spn_x_copy,all_spn_x_y,all_spn_x_y_dicts,all_prior,all_spn_x_y_model= create_torch_spn_parts(spn_x=spn_clf,
+                                                                                                  label_ids=label_ids,
+                                                                                                  trainable_leaf=grid_params.fine_tune_leafs)
         cnn_spn = CNN_SPN_Parts(num_classes=num_classes,
                                 learning_rate=fine_tune_rate,
                                 all_spn_x_y_model=all_spn_x_y_model,

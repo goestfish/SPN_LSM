@@ -10,6 +10,11 @@ from sklearn.metrics import accuracy_score
 
 
 def learn_classifier(data, debugging,ds_context, spn_learn_wrapper, label_idx, **kwargs):
+
+    if "n_clusters" in kwargs:
+        print("[SPN] Warning: n_clusters is not supported by this spflow version, ignoring it.")
+        kwargs.pop("n_clusters")
+
     spn = Sum()
     label_ids=[]
     for label, count in zip(*np.unique(data[:, label_idx], return_counts=True)):

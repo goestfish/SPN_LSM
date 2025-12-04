@@ -32,7 +32,10 @@ class SimpleCNN(nn.Module):
         num_layer = grid_params.num_layer
         dropout = grid_params.dropout
         filter_size = grid_params.filter_size
-        last_num_filters = grid_params.last_num_filters
+        latent_dim = grid_params.latent_dim
+        if isinstance(latent_dim, (list, tuple)):
+            latent_dim = latent_dim[0]
+        last_num_filters = int(latent_dim)
 
         in_ch = c_in
         for lay_num in range(num_layer - 1):

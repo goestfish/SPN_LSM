@@ -15,33 +15,32 @@ class GaussianLayer(nn.Module):
 
         mean_t = torch.as_tensor(mean, dtype=dtype)
         stdev_t = torch.as_tensor(stdev, dtype=dtype)
-
-        self.mean = nn.Parameter(mean_t, requires_grad=trainable_nodes)
-        self.stdev = nn.Parameter(stdev_t, requires_grad=trainable_nodes)
-
+        req_grad = bool(trainable_nodes)
+        self.mean = nn.Parameter(mean_t, requires_grad=req_grad)
+        self.stdev = nn.Parameter(stdev_t, requires_grad=req_grad)
         tmp_t = torch.tensor(0.001, dtype=dtype)
-        self.tmp = nn.Parameter(tmp_t, requires_grad=trainable_nodes)
-
-        self.trainable_nodes = trainable_nodes
+        self.tmp = nn.Parameter(tmp_t, requires_grad=req_grad)
+        self.trainable_nodes = req_grad
 
     def forward(self, inputs, nd_idxs):
 
-        # tf.gather_nd(inputs, nd_idxs)
-        x = inputs[nd_idxs[:, 0], nd_idxs[:, 1]]  # [B]
-        x = x.view(inputs.size(0), 1)  # [B, 1]
+        device = inputs.device
+        x = inputs[nd_idxs[:, 0], nd_idxs[:, 1]]
+        x = x.view(inputs.size(0), 1)
+
+        mean = self.mean.to(device)
+        tmp = self.tmp.to(device)
+        stdev_param = self.stdev.to(device)
 
         if self.trainable_nodes:
-            # tf.keras.layers.maximum([self.stdev, self.tmp])
-            stdev = torch.maximum(self.stdev, self.tmp)
+            stdev = torch.maximum(stdev_param, tmp)
         else:
-            stdev = self.stdev
+            stdev = stdev_param
 
-        dist = Normal(loc=self.mean, scale=stdev)
-        # broadcasting: mean/stdev
+        dist = Normal(loc=mean, scale=stdev)
         log_prob = dist.log_prob(x)
 
         return log_prob  # [B, 1]
-
 
 class CategoricalLayer(nn.Module):
 
@@ -51,14 +50,17 @@ class CategoricalLayer(nn.Module):
         self.probs = nn.Parameter(prob_t, requires_grad=False)
 
     def forward(self, inputs, nd_idxs):
+        device = inputs.device
         x = inputs[nd_idxs[:, 0], nd_idxs[:, 1]]  # [B]
         x = x.view(inputs.size(0), 1)
 
-        # logits -> probs
-        softmax_probs = F.softmax(self.probs, dim=0)
-        dist = Categorical(probs=softmax_probs)
+        logits = self.probs.to(device)
 
-        log_prob = dist.log_prob(x.squeeze(-1).long())  # [B]
+        softmax_probs = F.softmax(logits, dim=0)
+        dist = Categorical(probs=softmax_probs)
+        x_idx = x.squeeze(-1).long()
+
+        log_prob = dist.log_prob(x_idx)  # [B]
 
         return log_prob.view(-1, 1)  # [B, 1]
 
@@ -78,24 +80,22 @@ def get_batch_idx(node, data_input):
 
 
 class LogSumLayer(nn.Module):
-    def __init__(self, softmax_inverse,
-                 dtype=torch.float32,
-                 name="log_sum"):
+    
+    def __init__(self, softmax_inverse, dtype=torch.float32, name="log_sum"):
         super().__init__()
         logits = torch.as_tensor(softmax_inverse, dtype=dtype)
         self.logits = nn.Parameter(logits, requires_grad=True)
 
     def forward(self, inputs):
-        # [num_children]
-        weights = F.softmax(self.logits, dim=0)
-        log_w = torch.log(weights + 1e-8)
+        device = inputs[0].device
 
-        # children_prob: [B, num_children, 1]
+        weights = F.softmax(self.logits.to(device), dim=0)
+        log_w = torch.log(weights + 1e-8).to(device)
+
         children_prob = torch.stack(inputs, dim=1)
-
         log_w = log_w.view(1, -1, 1)
 
-        out = torch.logsumexp(children_prob + log_w, dim=1)  # [B, 1]
+        out = torch.logsumexp(children_prob + log_w, dim=1)
         return out
 
 
@@ -136,15 +136,22 @@ def categorical_to_torch_graph(node,
                                variable_dict=None,
                                dtype=np.float32,
                                trainable_leaf=False):
+    
     nd_idxs = get_batch_idx(node, data_placeholder)
     p = np.array(node.p, dtype=dtype)
-    softmax_inverse = np.log(p / np.max(p)).astype(dtype)
 
+    if p.sum() > 0:
+        p = p / p.sum()
+    eps = 1e-8
+    p = np.clip(p, eps, 1.0)
+    softmax_inverse = np.log(p / np.max(p)).astype(dtype)
     layer = CategoricalLayer(softmax_inverse,
                              log_space,
                              name=node.__class__.__name__ + str(node.id))
+    
     if variable_dict is not None:
         variable_dict[node] = layer.probs
+
     return layer(data_placeholder, nd_idxs)
 
 

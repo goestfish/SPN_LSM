@@ -83,20 +83,29 @@ class CNN_SPN(nn.Module):
         else:
             other = None
 
-        embedding = self.embedding(X)
+        out = self.embedding(X)
+        if isinstance(out, tuple):
+            embedding = out[0]
+        else:
+            embedding = out
+
+        if embedding.dim() > 2:
+            if self.get_max:
+                embedding = torch.amax(embedding, dim=tuple(range(1, embedding.dim())))
+            else:
+                embedding = embedding.view(embedding.size(0), -1)
 
         if self.spn_training:
-            if self.get_max and embedding.dim() > 2:
-                embedding = torch.amax(embedding, dim=(1, 2))
             if self.use_add_info and other is not None:
+                if other.dim() == 1:
+                    other = other.unsqueeze(-1)
                 embedding = torch.cat([embedding, other], dim=-1)
+
             y_float = y.to(torch.float32).unsqueeze(-1)
             spn_input = torch.cat([y_float, embedding], dim=-1)
             spn_output = self.clf(spn_input)
             loss = -torch.sum(spn_output)
         else:
-            if embedding.dim() > 2:
-                embedding = torch.amax(embedding, dim=tuple(range(1, embedding.dim())))
             logits = self.clf(embedding).squeeze(-1)
             y_float = y.to(torch.float32)
             loss = self.clf_loss(logits, y_float)
@@ -333,7 +342,11 @@ class CNN_SPN_Parts(nn.Module):
         X = _to_tensor(X, dtype=torch.float32, device=device)
         y = _to_tensor(y, dtype=torch.long, device=device)
 
-        embedding, _, _ = self.embedding(X)
+        out = self.embedding(X)
+        if isinstance(out, tuple):
+            embedding = out[0]
+        else:
+            embedding = out
 
         if self.get_max:
             embedding = torch.amax(embedding, dim=(1, 2))
@@ -387,10 +400,14 @@ class CNN_SPN_Parts(nn.Module):
         else:
             other_data = None
 
-        embedding, _, _ = self.embedding(X)
+        out = self.embedding(X)
+        if isinstance(out, tuple):
+            embedding = out[0]
+        else:
+            embedding = out
 
-        if self.get_max:
-            embedding = torch.amax(embedding, dim=(1, 2))
+        if embedding.dim() > 2:
+            embedding = embedding.view(embedding.size(0), -1)
 
         embedding = self._maybe_gauss(embedding, training=training)
 
