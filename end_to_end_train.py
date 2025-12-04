@@ -1,15 +1,15 @@
 import numpy
-import tensorflow as tf
 import numpy as np
-from CNN_functions import train_embedding_cnn, get_layer_embeddings, load_CNN ,train_embedding_VAE, load_VAE_and_eval
+from CNN_functions_pytorch import train_embedding_cnn,get_layer_embeddings,load_CNN,train_embedding_VAE,load_VAE_and_eval
 from SPN_functions import create_SPN
 import pickle as pkl
-from CNN_SPN import  CNN_SPN_Parts, test_model_no_mpe, train_model_parts
+from torch_CNN_SPN import  CNN_SPN_Parts, test_model_no_mpe, train_model_parts
 from spn.algorithms.Statistics import get_structure_stats
 from tf2_spn import create_tf_spn_parts
 import os
 import gc
 import shutil
+import torch
 
 from utils import data_to_batch
 
@@ -83,23 +83,26 @@ def SPN_structure_train(grid_params,model, layer_names, train_dataset, test_data
 
 
 def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debugging=False,split=0,fold_path=''):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     get_max=False
     load_data=False
     max_iterations=1#10
     model_path=fold_path+'vae_checkpoints/'#'models/'+model_name
     if not os.path.exists(model_path):
         os.mkdir(model_path)
-    checkpoint_path = model_path + 'tf_ckpts_last'
+    checkpoint_path = model_path + 'pt_ckpts_last'
 
     model_path=fold_path+'vae_checkpoints_tmp/'#'models/'+model_name
     if not os.path.exists(model_path):
         os.mkdir(model_path)
-    checkpoint_path_tmp = model_path + 'tf_ckpts_last'
+    checkpoint_path_tmp = model_path + 'pt_ckpts_last'
+    os.makedirs(checkpoint_path, exist_ok=True)
+    os.makedirs(checkpoint_path_tmp, exist_ok=True)
 
     checkpoint_path_cnn_spn=fold_path+'cnn_spn_checkpoints'
     if not os.path.exists(checkpoint_path_cnn_spn):
         os.mkdir(checkpoint_path_cnn_spn)
-    checkpoint_path_cnn_spn = checkpoint_path_cnn_spn + '/tf_ckpts_last'
+    checkpoint_path_cnn_spn = checkpoint_path_cnn_spn + '/pt_ckpts_last'
 
 
 
@@ -133,7 +136,7 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
     model_path_copy=fold_path+'vae_checkpoints_copy/'#'models/'+model_name
     if not os.path.exists(model_path_copy):
         os.mkdir(model_path_copy)
-    model_path_copy+= '/tf_ckpts_last'
+    model_path_copy+= '/pt_ckpts_last'
     if not os.path.exists(model_path_copy):
         os.mkdir(model_path_copy)
     # Copy each file from dir1 to dir2
@@ -142,8 +145,9 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
 
     gc.collect()
     del model
-    tf.keras.backend.clear_session()
-
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    
     ##########################################################
     # 5. create Cnn_spn
     #acc_diff=1
@@ -181,8 +185,7 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
             if grid_params.VAE_fine_tune:
                 decoder=model.decoder
         else:
-            cnn_layer_out = model.get_layer(layer_names[0]).output
-            cnn_embedding = tf.keras.Model(inputs=model.input, outputs=cnn_layer_out)
+            cnn_embedding = model.get_feature_extractor()
 
         if grid_params.use_add_info and add_info:
             spn_input_shape=(last_num_filters + train_data[1].shape[1],)
@@ -216,6 +219,8 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
                                 end_dim=100,
                                 dropout=grid_params.dropout,clf_mlp=model.classifier
                                 )
+        cnn_spn = cnn_spn.to(device)
+
 
         #########################################################################################################
         spn_save_data={'spn_x' : spn_clf,
@@ -224,12 +229,9 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
         pkl.dump(spn_save_data, open(fold_path+ 'spn.pkl', 'wb'))
         # save SPN weights
         # checkpoint file:
-        ckpt_cnn_spn = tf.train.Checkpoint(step=tf.Variable(1), optimizer=cnn_spn.optimizer, net=cnn_spn)
-        manager_cnn_spn = tf.train.CheckpointManager(ckpt_cnn_spn, checkpoint_path_cnn_spn, max_to_keep=1)
 
-        if not it_counter:
-            ckpt_cnn_spn.step.assign_add(1)
-            manager_cnn_spn.save()
+
+
         #########################################################################################################
 
 
@@ -244,7 +246,7 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
         print('TRAIN CNN+SPN',flush=True)
         eval_after_train,vae_debugg_stuff=train_model_parts(grid_params,cnn_spn, train_data, val_data,test_data,
                           num_iterations=grid_params.fine_tune_its,
-                          ckpt=[ckpt_cnn_spn,ckpt],manager=[manager_cnn_spn,manager],val_entropy=eval_before_train[1][1],val_acc=curr_acc,add_info=add_info)
+                          ckpt=[],manager=[],val_entropy=eval_before_train[1][1],val_acc=curr_acc,add_info=add_info)
         all_vae_debug_stuff.append(vae_debugg_stuff)
         # save this:
         # save debugging stuff:
@@ -276,7 +278,8 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
         del spn_clf
         del model
         gc.collect()
-        tf.keras.backend.clear_session()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         it_counter+=1
 

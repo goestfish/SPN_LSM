@@ -137,7 +137,7 @@ def train_vae(model, dataloader, optimizer, device):
     for x, _ in dataloader:
         x = x.to(device)
         optimizer.zero_grad()
-        recon_x, mu, logvar = model(x)
+        recon_x, mu, logvar, logits = model(x) #RASHED ADDED 4th OUTPUT (logits) BUT NOT USING IT HERE for unpacking error
         loss = vae_loss(recon_x, x, mu, logvar)
         loss.backward()
         optimizer.step()
@@ -151,8 +151,8 @@ def test_vae(model, dataloader, device):
     with torch.no_grad():
         for x, _ in dataloader:
             x = x.to(device)
-            recon_x, mu, logvar = model(x)
-            loss = vae_loss(recon_x, x, mu, logvar)
+            recon_x, mu, logvar, logits = model(x) #RASHED ADDED 4th OUTPUT (logits) BUT NOT USING IT HERE for unpacking error
+            loss = vae_loss(recon_x, x, mu, logvar) 
             total_loss += loss.item()
     return total_loss / len(dataloader.dataset)
 
