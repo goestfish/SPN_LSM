@@ -291,6 +291,19 @@ class CNN_SPN_Parts(nn.Module):
         self.VAE_fine_tune = VAE_fine_tune
         self.loss_weights = loss_weights
 
+        lw = loss_weights
+        # Unwrap things like [[[10.0, 0.001, 5.0]]] → [10.0, 0.001, 5.0]
+        while isinstance(lw, (list, tuple, np.ndarray)) and len(lw) == 1:
+            lw = lw[0]
+
+        # If after unwrapping it's not at least length 3, fall back to defaults
+        if not (isinstance(lw, (list, tuple, np.ndarray)) and len(lw) >= 3):
+            lw = [1.0, 1.0, 1.0]
+        else:
+            lw = [float(lw[0]), float(lw[1]), float(lw[2])]
+
+        self.loss_weights = lw
+
         prior = torch.tensor(all_prior, dtype=dtype)
         self.register_buffer("prior_weights", prior)
 
@@ -444,9 +457,18 @@ class CNN_SPN_Parts(nn.Module):
         with torch.no_grad():
             device = next(self.parameters()).device
             X = _to_tensor(X, dtype=torch.float32, device=device)
-            embedding, _, _ = self.embedding(X, training=False)
-            return self.reconstruct(embedding)
 
+            # Call embedding WITHOUT TF-style kwarg
+            out = self.embedding(X)
+
+            # Handle both (embedding,) tuple and plain tensor
+            if isinstance(out, (tuple, list)):
+                embedding = out[0]
+            else:
+                embedding = out
+
+            return self.reconstruct(embedding)
+        
     def model_execution_vae(self, X, y_real, other_data, training=True):
 
         self.train(mode=training)
@@ -458,36 +480,57 @@ class CNN_SPN_Parts(nn.Module):
         else:
             other_data = None
 
+        # ---- normalize input if using pretrained model (keep your logic) ----
         normalized_X = X
         if self.load_pretrain_model:
             if normalized_X.dim() == 4 and normalized_X.shape[-1] > 1:
                 normalized_X = normalized_X[..., 0:1]
             normalized_X = normalized_X / 255.0
 
-        embedding_, embed_mean, embed_var = self.embedding(X, training=training)
-        embedding = embedding_.clone()
-        reconstruction = self.decoder(embedding)
+        # ---- call embedding WITHOUT training kwarg, and handle shapes ----
+        out = self.embedding(X)
+        if isinstance(out, (tuple, list)):
+            # if you ever make embedding return (z, mu, logvar)
+            embedding_ = out[0]
+            embed_mean = out[1] if len(out) > 1 else embedding_
+            embed_var  = out[2] if len(out) > 2 else torch.zeros_like(embed_mean)
+        else:
+            # current case: clf_model() returns just mu
+            embedding_ = out
+            embed_mean = embedding_
+            embed_var  = torch.zeros_like(embed_mean)
 
+        # Decoder works on the latent embedding
+        reconstruction = self.decoder(embedding_)
+
+        # KL term; if embed_var is zeros this becomes ~0 (fine for fine-tuning)
         kl_loss = -0.5 * torch.sum(1 + embed_var - embed_mean.pow(2) - embed_var.exp(), dim=1)
 
-        if self.get_max:
-            embedding = torch.amax(embedding_, dim=(1, 2))
+        # ---- build embedding vector for SPN ----
+        if self.get_max and embedding_.dim() > 2:
+            # e.g. B x C x H x W → pool over spatial dims
+            embedding = torch.amax(embedding_, dim=tuple(range(1, embedding_.dim())))
+        else:
+            # e.g. B x D → just flatten
+            embedding = embedding_.view(embedding_.size(0), -1)
 
         embedding = self._maybe_gauss(embedding, training=training)
 
         if self.use_add_info and other_data is not None:
             embedding = torch.cat([embedding, other_data], dim=-1)
 
+        # ---- SPN classification p(y|x,z) ----
         weights = self.prior_weights.view(1, -1)
         inputs = []
         for label_id, sub_spn in enumerate(self.all_spn_x_y):
             y = torch.full((embedding.size(0), 1), float(label_id),
                            device=device, dtype=embedding.dtype)
             spn_input = torch.cat([y, embedding], dim=-1)
-            out = sub_spn(spn_input)
-            if out.dim() > 1:
-                out = out.squeeze(-1)
-            inputs.append(out)
+            out_spn = sub_spn(spn_input)
+            if out_spn.dim() > 1:
+                out_spn = out_spn.squeeze(-1)
+            inputs.append(out_spn)
+
         children_prob = torch.stack(inputs, dim=1)  # [B, K]
         log_enumerator = children_prob + torch.log(weights)
         p_x = torch.logsumexp(log_enumerator, dim=1, keepdim=True)
@@ -495,6 +538,7 @@ class CNN_SPN_Parts(nn.Module):
 
         clf_loss = self.clf_loss(p_y_x, y_real)
 
+        # ---- reconstruction loss (match shapes, same logic as before) ----
         if reconstruction.shape != normalized_X.shape:
             if reconstruction.dim() == 4 and reconstruction.shape[1] == normalized_X.shape[-1]:
                 reconstruction_for_loss = reconstruction.permute(0, 2, 3, 1)
@@ -508,14 +552,17 @@ class CNN_SPN_Parts(nn.Module):
             rec_loss_per_pixel = rec_loss_per_pixel.mean(dim=-1)
         rec_loss = rec_loss_per_pixel
 
+        # ---- combine losses ----
         rec_w, kl_w, clf_w = self.loss_weights
         loss = rec_loss * 2 * rec_w + kl_loss * kl_w + clf_loss * clf_w
 
+        # average over batch
         rec_loss = rec_loss.mean()
         kl_loss = kl_loss.mean()
         loss = loss.mean()
 
         return p_y_x, loss, rec_loss, clf_loss, kl_loss, embedding_
+
 
     def model_execution_vae_eval(self, X, y_real, other_data):
         training = False
@@ -535,14 +582,24 @@ class CNN_SPN_Parts(nn.Module):
             normalized_X = normalized_X / 255.0
 
         with torch.no_grad():
-            embedding_, embed_mean, embed_var = self.embedding(X, training=training)
-            embedding = embedding_.clone()
-            reconstruction = self.decoder(embedding)
+            out = self.embedding(X)
+            if isinstance(out, (tuple, list)):
+                embedding_ = out[0]
+                embed_mean = out[1] if len(out) > 1 else embedding_
+                embed_var  = out[2] if len(out) > 2 else torch.zeros_like(embed_mean)
+            else:
+                embedding_ = out
+                embed_mean = embedding_
+                embed_var  = torch.zeros_like(embed_mean)
+
+            reconstruction = self.decoder(embedding_)
 
             kl_loss = -0.5 * torch.sum(1 + embed_var - embed_mean.pow(2) - embed_var.exp(), dim=1)
 
-            if self.get_max:
-                embedding = torch.amax(embedding_, dim=(1, 2))
+            if self.get_max and embedding_.dim() > 2:
+                embedding = torch.amax(embedding_, dim=tuple(range(1, embedding_.dim())))
+            else:
+                embedding = embedding_.view(embedding_.size(0), -1)
 
             embedding = self._maybe_gauss(embedding, training=training)
 
@@ -555,16 +612,23 @@ class CNN_SPN_Parts(nn.Module):
                 y = torch.full((embedding.size(0), 1), float(label_id),
                                device=device, dtype=embedding.dtype)
                 spn_input = torch.cat([y, embedding], dim=-1)
-                out = sub_spn(spn_input)
-                if out.dim() > 1:
-                    out = out.squeeze(-1)
-                inputs.append(out)
+                out_spn = sub_spn(spn_input)
+                if out_spn.dim() > 1:
+                    out_spn = out_spn.squeeze(-1)
+                inputs.append(out_spn)
             children_prob = torch.stack(inputs, dim=1)  # [B, K]
             log_enumerator = children_prob + torch.log(weights)
             p_x = torch.logsumexp(log_enumerator, dim=1, keepdim=True)
             p_y_x = log_enumerator - p_x
 
-            p_y_x_mlp = self.clf_mlp(embedding) if self.clf_mlp is not None else None
+            if self.clf_mlp is not None:
+                emb_mlp = embedding_
+                # If it's not already (B, D), flatten it
+                if emb_mlp.dim() > 2:
+                    emb_mlp = emb_mlp.view(emb_mlp.size(0), -1)
+                p_y_x_mlp = self.clf_mlp(emb_mlp)
+            else:
+                p_y_x_mlp = None
 
             if reconstruction.shape != normalized_X.shape:
                 if reconstruction.dim() == 4 and reconstruction.shape[1] == normalized_X.shape[-1]:
@@ -595,6 +659,7 @@ class CNN_SPN_Parts(nn.Module):
             mae = mae.mean()
 
         return p_y_x, loss, rec_loss, clf_loss, kl_loss, mae, embedding_, p_y_x_mlp
+
 
     def train_step_vae_one_loss(self, x, y, other_data):
 
