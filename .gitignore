@@ -179,3 +179,4 @@ cython_debug/
 
 #bowei
 code.txt
+cnn_spn_models/
