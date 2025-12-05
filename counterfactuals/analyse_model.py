@@ -10,7 +10,7 @@ import random
 from sklearn.model_selection import KFold
 
 from torch_CNN_SPN import CNN_SPN_Parts, test_model_SPN_MLP
-from CNN_functions import load_VAE
+from CNN_functions_pytorch import load_VAE
 from end_to_end_train import load_dataset
 from torch_spn import create_torch_spn_parts
 import numpy as np
