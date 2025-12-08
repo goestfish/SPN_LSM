@@ -46,83 +46,67 @@ def nan_to_num(tensor,nan,posinf):
 
 
 
-def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_class,y,model_type,opt_weights=[10,0.005],learning_rate = 0.01,num_steps = 150):
-    """ Get the latent variable z for the input. Generate counterfactual latent vectors z' by optimizing z' so that the classifier's prediction
-    moves to the opposite class while keeping z' close to the original z and latent likelihood similar.
-
-    Args:
-        img_idx (int): index of image in dataset. Optional for logging
-        cnn_spn_model: Pytorch wrapper providing:
-                        - embedding(X) --> (z_embed, ... , ...)
-                        - spn_clf(embedding) --> (pred_logits, p_z)
-                        - reconstruct(z_tensor) --> reconstructed images tensor
-        X (np.ndarray or torch.Tensor): Input batch 
-        additional_info (np.ndarray or torch.Tensor): additional info per sample 
-        opposite_class (int): new target class to push to (0,1)
-        y(np.ndarray or list): original labels (batch or single)
-        model_type (str): 'MLP' or 'SPN' - determines loss formulation 
-        opt_weights (list): weights [beta, gamma] for distance and plausibility metrics 
-        learning_rate (float): optimizer learning rate for optimizing z'
-        num_steps (int): number of gradient steps on z'
-    Returns:
-        reconstruction_np, rec_z_np, z_prime, np, title_info, distance_np, arg_map_np, loss_val, log_pred_val, p_z_np, label_switch_step, pred_np 
+def get_counterfactual_infos(
+    img_idx,
+    cnn_spn_model,
+    X,
+    additional_info,
+    opposite_class,
+    y,
+    model_type,
+    opt_weights=[10, 0.005],
+    learning_rate=0.01,
+    num_steps=150,
+):
     """
-    # get device from model if possible
-    device = None
+    Get the latent variable z for the input. Generate counterfactual latent vectors z'
+    by optimizing z' so that the classifier's prediction moves to the opposite class
+    while keeping z' close to the original z and latent likelihood similar.
+
+    Returns:
+        reconstructions_np, rec_z_np, z_prime_np, z_np,
+        title_info, distance_np, arg_max_np, loss_val,
+        log_pred_val, p_z_np, label_switch_step, pred_np
+    """
+    # ---- choose device ----
     try:
-        # prefer model parameters
         params = next(cnn_spn_model.parameters())
         device = params.device
     except StopIteration:
-        device = torch.device('cpu')
-    # make sure we're working with tensors that are optimized for our device
+        device = torch.device("cpu")
+
+    # ---- move inputs to device ----
     if not torch.is_tensor(X):
         X_t = torch.tensor(X, dtype=torch.float32, device=device)
     else:
         X_t = X.to(device)
+
     if not torch.is_tensor(additional_info):
-        add_info_t = torch.tensor(additional_info, dtype = torch.float32, device = device)
+        add_info_t = torch.tensor(additional_info, dtype=torch.float32, device=device)
     else:
         add_info_t = additional_info.to(device)
 
-    # New: Get latent embedding z for the input (expecting a torch tensor?)
-    # And the embedding should return (z_embed, ..., ...)
-    #print('image',img_idx)
-    #[z_embed, _, _] = cnn_spn_model.embedding(X, training=False)
-    # z = vae_encoder(input_x)
-
-    # Define z_prime as a trainable variable initialized from z
-    #y_opposite=tf.Variable(np.asarray([opposite_class]*z_embed.shape[0]), trainable=True, dtype=tf.dtypes.int32)
-    #z = tf.Variable(z_embed, trainable=False, dtype=tf.dtypes.float32)
-    #z_prime = tf.Variable(z_embed, trainable=True, dtype=tf.dtypes.float32)
-    #add_info = tf.Variable(additional_info, trainable=False, dtype=tf.dtypes.float32)
-    #print('shapes', z_prime.shape, additional_info.shape,'le:',learning_rate)
-
+    # ---- get latent z from embedding ----
     with torch.no_grad():
-        z_embed_tuple = cnn_spn_model.embedding(X_t) #expecting (z, ... , ...)
-        # account for if the embedding returns a tuple or list
-        if isinstance(z_embed_tuple, tuple) or isinstance(z_embed_tuple, list):
+        z_embed_tuple = cnn_spn_model.embedding(X_t)
+        if isinstance(z_embed_tuple, (tuple, list)):
             z_embed = z_embed_tuple[0]
         else:
             z_embed = z_embed_tuple
-    # New: detach original z
-    z = z_embed.detach().to(device) # new shape expected (batch, latent_dim)
-    # New: crate z_prime as a trainable parameter initialized to z
+
+    z = z_embed.detach().to(device)
     z_prime = z.clone().detach().requires_grad_(True)
-    # New: Create y_opposite tensor for classification loss (if we need it)
+
     batch_size = z.shape[0]
-    y_opposite = torch.full((batch_size,), opposite_class, dtype = torch.long, device = device)
+    y_opposite = torch.full(
+        (batch_size,), opposite_class, dtype=torch.long, device=device
+    )
 
-
-    # Define the optimizer
-    #optimizer = tf.keras.optimizers.SGD(learning_rate)  # Adam(learning_rate)
-    #myloss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     optimizer = torch.optim.SGD([z_prime], lr=learning_rate)
-    ce_loss = nn.CrossEntropyLoss(reduction='none')
-    # Loss function to push z' to the opposite class
-    
-    # pre-initializing some variables for later
-    title_info = ''
+    ce_loss = nn.CrossEntropyLoss(reduction="none")
+
+    # ---- preallocate bookkeeping vars ----
+    title_info = ""
     arg_max = None
     loss_val = None
     log_pred_val = None
@@ -130,113 +114,132 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
     p_z_val = None
     label_switch_step = -1
     switch = False
-    pred = None
-    
-    # Precompute embedding_org related values
+    pred_logits = None  # keep last logits for returning pred_np
+
+    # ---- original embedding for plausibility ----
     embedding_org = torch.cat([z, add_info_t], dim=-1)
     with torch.no_grad():
-        pred_org, p_z_org = cnn_spn_model.spn_clf(embedding_org, training=False) # pred_org logits, p_z_org maybe log probs
-    
-    #optimization loop
+        pred_org, p_z_org = cnn_spn_model.spn_clf(embedding_org, training=False)
+
+    # ---- optimization loop ----
     for step in range(num_steps):
         optimizer.zero_grad()
-         
-         # create embedding from z_prime + additional info
+
+        # embedding for z'
         embedding = torch.cat([z_prime, add_info_t], dim=-1)
 
-         # get predictions and p(z) from SPN or MLP (expecting logits)
-        pred_logits, p_z = cnn_spn_model.spn_clf(embedding, training=False) # pred_logits: (batch_num_classes)
+        # forward through classifier
+        pred_logits, p_z = cnn_spn_model.spn_clf(embedding, training=False)
 
-         # compute distance per sample (mean squared on latent dims)
-        distance = torch.mean((z-z_prime) ** 2, dim=-1) # (batch, )
-        log_pred = None
-        if model_type == 'MLP':
-            # CrossEntropy expects (batch, classes) logits and (batch,) targets
-            test = ce_loss(pred_logits, y_opposite) # per-sample loss
-            # total per sample loss = CE + beta * distance
-            per_sample_loss = test + (distance * opt_weights[0])
-            loss = torch.mean(per_sample_loss)
-            # for logging purposes -- set log_pred as negative cross_entropy (higher is better)
-            log_pred = -test.detach()
-        elif model_type == 'SPN':
-            # assuming pred_logits are class-scores (bigger --> more probable); use opposite_class column
-            # test is a per-sample score = pred_logits[:, opposite_class]
+        # latent distance term
+        distance = torch.mean((z - z_prime) ** 2, dim=-1)
+
+        # classification + plausibility loss
+        if model_type == "MLP":
+            # standard CE on logits
+            ce_per_sample = ce_loss(pred_logits, y_opposite)
+            per_sample_loss = ce_per_sample + opt_weights[0] * distance
+            loss = per_sample_loss.mean()
+            log_pred = -ce_per_sample.detach()
+        elif model_type == "SPN":
+            # pred_logits[:, opposite_class] is "score" for target class
             test = pred_logits[:, opposite_class]
-            # plausibility difference between p_z and p_z_org
-            # ensure they're tensors w/ same shape
-            # compute per-sample sum of abs difference across appropriate dim
+
+            # plausibility difference
             try:
                 plaus_diff = torch.sum(torch.abs(p_z - p_z_org), dim=-1)
             except Exception:
-                # fallback if p_z are scalars
                 plaus_diff = torch.abs(p_z - p_z_org).reshape(-1)
-            per_sample_loss = (-test) + (distance * opt_weights[0]) + (plaus_diff * opt_weights[1])
-            loss = torch.mean(per_sample_loss)
-            log_pred = -test.detach()
 
+            per_sample_loss = (
+                -test + opt_weights[0] * distance + opt_weights[1] * plaus_diff
+            )
+            loss = per_sample_loss.mean()
+            log_pred = -test.detach()
         else:
             raise ValueError("model_type must be either 'MLP' or 'SPN'")
-    # Backprop on z_prime
-    loss.backward()
-    optimizer.step()
-    # Evaluate switching condition
-    with torch.no_grad():
-        argmax_vals = torch.argmax(pred_logits, dim=1).cpu().numpy()
-        argmax_mean = np.mean(argmax_vals)
 
-        # if opposite_class = 1 & mean >= 0.5 OR opposite_class = 0 & mean <= 0.5
-        if not switch:
-            # could combine these two conditions into the same if statement but this is more readable?
-            if opposite_class and argmax_mean >= 0.5: 
-                switch = True
-                label_switch_step = step
-            elif (not opposite_class) and argmax_mean <= 0.5:
-                switch = True
-                label_switch_step = step
-            # else switch stays False
-    # if last step, gather diagnostics
-    if step == num_steps - 1:
+        # backward + step
+        loss.backward()
+        optimizer.step()
+
+        # compute current argmax + switching epoch
         with torch.no_grad():
-            argmax = argmax_vals
-            loss_val = loss.detach().cpu().item()
-            # log_pred - used nefgative per-sample test; take mean
-            if isinstance(log_pred, torch.Tensor):
-                try:
-                    log_pred_val = log_pred.mean().cpu().numpy()
-                except Exception:
-                    log_pred_val = float(log_pred)
-            else:
-                log_pred_val = float(log_pred)
-            distance_val = distance.detach().cpu().numpy()
-            p_z_val = p_z.detach().cpu().numpy() if torch.is_tensor(p_z) else np.array(p_z)
-            arg_max_mean = float(argmax_mean)
-            distance_mean = float(np.mean(distance_val))
-            p_z_mean = float(np.mean(p_z_val)) if np.size(p_z_val) else float(p_z_val)
-            title_info = f"New y:{arg_max_mean:.0f}; orginal y:{int(y[0])}; MSE{distance_mean:.2f}; log(p(z)):{p_z_mean:.2f}"            
+            argmax_vals = torch.argmax(pred_logits, dim=1).cpu().numpy()
+            argmax_mean = float(np.mean(argmax_vals))
 
-    # After optimization, reconstruct images from z_prime and z
+            if not switch:
+                if opposite_class == 1 and argmax_mean >= 0.5:
+                    switch = True
+                    label_switch_step = step
+                elif opposite_class == 0 and argmax_mean <= 0.5:
+                    switch = True
+                    label_switch_step = step
+
+        # at the final step, save scalar summaries
+        if step == num_steps - 1:
+            with torch.no_grad():
+                arg_max = argmax_vals  # <-- crucial: no longer None
+                loss_val = float(loss.detach().cpu().item())
+
+                if isinstance(log_pred, torch.Tensor):
+                    try:
+                        log_pred_val = float(log_pred.mean().cpu().item())
+                    except Exception:
+                        log_pred_val = float(log_pred.detach().cpu().numpy())
+                else:
+                    log_pred_val = float(log_pred)
+
+                distance_val = distance.detach().cpu().numpy()
+                p_z_val = (
+                    p_z.detach().cpu().numpy() if torch.is_tensor(p_z) else np.array(p_z)
+                )
+
+                distance_mean = float(np.mean(distance_val))
+                p_z_mean = float(np.mean(p_z_val)) if np.size(p_z_val) else float(p_z_val)
+                title_info = (
+                    f"New y:{argmax_mean:.0f}; orginal y:{int(y[0])}; "
+                    f"MSE{distance_mean:.2f}; log(p(z)):{p_z_mean:.2f}"
+                )
+
+    # ---- reconstruct from z and z' ----
     with torch.no_grad():
-        # make sure z_prime is on the device and detach
         z_prime_out = z_prime.detach()
         z_out = z.detach()
-        reconstructions = cnn_spn_model.reconstruct(z_prime_out) # expecting a tensor here
+        reconstructions = cnn_spn_model.reconstruct(z_prime_out)
         rec_z = cnn_spn_model.reconstruct(z_out)
-    # convert outpuits to numpy for later stuff that expects numpy
+
+    # ---- convert to numpy for storage ----
     def to_numpy(x):
         if torch.is_tensor(x):
             return x.detach().cpu().numpy()
         return np.asarray(x)
+
     reconstructions_np = to_numpy(reconstructions)
     rec_z_np = to_numpy(rec_z)
     z_prime_np = to_numpy(z_prime_out)
     z_np = to_numpy(z_out)
-    pred_np = to_numpy(pred_logits.detach()) if 'pred_logits' in locals() else None
-    distance_np = to_numpy(distance)
+    pred_np = to_numpy(pred_logits) if pred_logits is not None else None
+    distance_np = to_numpy(distance_val)
     arg_max_np = np.asarray(arg_max) if arg_max is not None else None
     p_z_np = p_z_val if p_z_val is not None else None
-    
-    print('Rec min max', np.min(rec_z_np), np.max(rec_z_np))
-    return reconstructions_np, rec_z_np,z_prime_np,z_np,title_info,distance_np,arg_max_np,loss_val,log_pred_val,p_z_np,label_switch_step,pred_np
+
+    print("Rec min max", np.min(rec_z_np), np.max(rec_z_np))
+    return (
+        reconstructions_np,
+        rec_z_np,
+        z_prime_np,
+        z_np,
+        title_info,
+        distance_np,
+        arg_max_np,
+        loss_val,
+        log_pred_val,
+        p_z_np,
+        label_switch_step,
+        pred_np,
+    )
+
 
 
 def create_counterfactual_data(plot_path,num_imgs,input_data,bb_box_coordinates,cnn_spn_model,
