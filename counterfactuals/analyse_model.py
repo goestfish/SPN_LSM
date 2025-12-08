@@ -35,7 +35,7 @@ def load_VAE_model( add_info, num_classes, input_shape,data_path_fold,params,pat
     Returns:
         vae_model: loaded VAE pytorch model
     """
-    vae_save_path=data_path_fold+'vae_checkpoints_copy/tf_ckpts_last'
+    vae_save_path = os.path.join(data_path_fold, 'vae_checkpoints_copy', 'pt_ckpts_last')
     print('TODO _copy')
     # 1. load vae:
     # params,add_info,num_classes,input_shape,checkpoint_path,path='')
@@ -44,8 +44,7 @@ def load_VAE_model( add_info, num_classes, input_shape,data_path_fold,params,pat
         add_info = add_info, 
         num_classes = num_classes, 
         input_shape = input_shape, 
-        checkpoint_path = vae_save_path,
-        path = path)
+        checkpoint_path = vae_save_path)
     return vae_model
 
 def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''):
@@ -63,9 +62,10 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
     Returns:
         cnn_spn (nn.Module): Fully loaded PyTorch CNN+SPN model.
     """
-    vae_ckpt_path=data_path_fold+'vae_checkpoints/pt_ckpts_last'
+    vae_ckpt_path = os.path.join(data_path_fold, 'vae_checkpoints', 'pt_ckpts_last')
     cnn_spn_ckpt_dir = data_path_fold + 'cnn_spn_checkpoints'
     ckpt_file = os.path.join(cnn_spn_ckpt_dir, 'pt_ckpts_last.pt')
+    cnn_spn_ckpt_path = os.path.join(data_path_fold, 'cnn_spn_checkpoints', 'pt_ckpts_last.pt')
 
 
     # 1. load vae:
@@ -128,7 +128,7 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
 
     if os.path.isfile(ckpt_file):
         try:
-            ckpt_state = torch.load(ckpt_file, map_location="cpu")
+            ckpt_state = torch.load(cnn_spn_ckpt_path, map_location="cpu")
             cnn_spn.load_state_dict(ckpt_state)
             print(f"Loaded CNN+SPN checkpoint from {ckpt_file}")
         except Exception as e:
