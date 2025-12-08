@@ -62,6 +62,8 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
     Returns:
         cnn_spn (nn.Module): Fully loaded PyTorch CNN+SPN model.
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     vae_ckpt_path = os.path.join(data_path_fold, 'vae_checkpoints', 'pt_ckpts_last')
     cnn_spn_ckpt_dir = data_path_fold + 'cnn_spn_checkpoints'
     ckpt_file = os.path.join(cnn_spn_ckpt_dir, 'pt_ckpts_last.pt')
@@ -120,6 +122,8 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
                             clf_mlp=vae_model.classifier)
 
     # Load checkpoint
+    cnn_spn = cnn_spn.to(device)
+
     #ckpt_cnn_spn = tf.train.Checkpoint(step=tf.Variable(1), optimizer=cnn_spn.optimizer, net=cnn_spn)
     #manager_cnn_spn = tf.train.CheckpointManager(ckpt_cnn_spn, checkpoint_path_cnn_spn, max_to_keep=1)
 
@@ -128,7 +132,7 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
 
     if os.path.isfile(ckpt_file):
         try:
-            ckpt_state = torch.load(cnn_spn_ckpt_path, map_location="cpu")
+            ckpt_state = torch.load(cnn_spn_ckpt_path, map_location=device)
             cnn_spn.load_state_dict(ckpt_state)
             print(f"Loaded CNN+SPN checkpoint from {ckpt_file}")
         except Exception as e:
