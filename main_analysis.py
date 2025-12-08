@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     save_folder ='cnn_spn_models/'
 
-    model_names=['test_model']
+    model_names=['full_run_100e_ft50']#,'cnn_spn_model_test'#['cnn_spn_model_test']#['full_run_100e_ft50']#
 
 
 

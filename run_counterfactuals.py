@@ -28,7 +28,7 @@ if __name__ == "__main__":
         add_info=add_info,
         model_n=model_n,
         num_imgs=5,         # how many test images you want CFs for
-        path="../",         # same 'path' you used in training's load_dataset
+        path="",         # same 'path' you used in training's load_dataset
         model_path=model_path,
         learning_rate=0.01,
         num_steps=150,
