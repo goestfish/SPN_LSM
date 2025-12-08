@@ -396,6 +396,10 @@ def get_layer_embeddings(grid_params, model, layer_names, all_datasets,
                 images, labels = batch
             images = images.to(device)
 
+            if images.dim() == 4 and images.shape[1] not in (1, 3):
+                # e.g. [B, 128, 128, 1] → [B, 1, 128, 128]
+                images = images.permute(0, 3, 1, 2).contiguous()
+
             with torch.no_grad():
                 feats = feature_model(images)  # [B, latent_dim] or [B, C, H, W]
 

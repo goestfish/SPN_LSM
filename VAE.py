@@ -112,6 +112,8 @@ class VAE(nn.Module):
                 super().__init__()
                 self.encoder = parent.encoder
             def forward(self, x):
+                if x.dim() == 4 and x.shape[1] not in (1, 3):
+                    x = x.permute(0, 3, 1, 2).contiguous()
                 mu, logvar = self.encoder(x)
                 return mu
         return LatentExtractor(self)
@@ -134,26 +136,55 @@ def vae_loss(recon_x, x, mu, logvar):
 def train_vae(model, dataloader, optimizer, device):
     model.train()
     total_loss = 0
-    for x, _ in dataloader:
-        x = x.to(device)
+    total_samples = 0
+    for batch in dataloader:
+        if isinstance(batch, (list, tuple)):
+            x = batch[0]
+        else:
+            x = batch
+
+        x = x.to(device).float()
+        x = to_nchw(x)  # <<< important: NHWC -> NCHW if needed
+
         optimizer.zero_grad()
         recon_x, mu, logvar, logits = model(x) #RASHED ADDED 4th OUTPUT (logits) BUT NOT USING IT HERE for unpacking error
         loss = vae_loss(recon_x, x, mu, logvar)
         loss.backward()
         optimizer.step()
+        batch_size = x.size(0)
         total_loss += loss.item()
-    return total_loss / len(dataloader.dataset)
+        total_samples += batch_size
+    return total_loss / max(total_samples, 1)
 
 
 def test_vae(model, dataloader, device):
     model.eval()
     total_loss = 0
+    total_samples = 0
     with torch.no_grad():
-        for x, _ in dataloader:
-            x = x.to(device)
+        for batch in dataloader:
+            if isinstance(batch, (list, tuple)):
+                x = batch[0]
+            else:
+                x = batch
+
+            x = x.to(device).float()
+            x = to_nchw(x)  # <<< same permutation
+
             recon_x, mu, logvar, logits = model(x) #RASHED ADDED 4th OUTPUT (logits) BUT NOT USING IT HERE for unpacking error
             loss = vae_loss(recon_x, x, mu, logvar) 
+            batch_size = x.size(0)
             total_loss += loss.item()
-    return total_loss / len(dataloader.dataset)
+            total_samples += batch_size
 
+    return total_loss / max(total_samples, 1)
 
+def to_nchw(x: torch.Tensor) -> torch.Tensor:
+    """
+    Convert from NHWC (B, H, W, C) to NCHW (B, C, H, W) if needed.
+    If already NCHW (channels in dim 1), returns as-is.
+    """
+    if x.dim() == 4 and x.shape[1] not in (1, 3):
+        # Assume NHWC and permute to NCHW
+        x = x.permute(0, 3, 1, 2).contiguous()
+    return x
