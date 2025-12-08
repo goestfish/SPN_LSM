@@ -307,14 +307,57 @@ def process_image(image_idxs, input_data, bb_box_coordinates, model_name, opt_we
 
         mean_cls = np.mean(np.argmax(pred_np, axis=-1))
         opposite_class = int((round(mean_cls) + 1) % 2)
-        result.append(get_counterfactual_infos(image_idx,
-            cnn_spn_model, X, additional_info, opposite_class, y, model_name, opt_weights,
-            learning_rate=learning_rate, num_steps=num_steps
-        ) + (opposite_class, coordinates, x, mean_cls, y))
 
+        # --- unpack everything from get_counterfactual_infos ---
+        (
+            x_cf,          # reconstructions_np
+            x_rec,         # rec_z_np
+            z_cf,          # z_prime_np
+            z,             # z_np
+            title_info,
+            distance,
+            arg_max,
+            loss,
+            log_pred,
+            p_z,
+            label_switch_step,
+            pred_out,      # we don't actually need this afterward
+        ) = get_counterfactual_infos(
+            image_idx,
+            cnn_spn_model,
+            X,
+            additional_info,
+            opposite_class,
+            y,
+            model_name,
+            opt_weights,
+            learning_rate=learning_rate,
+            num_steps=num_steps,
+        )
+
+        # --- now pack exactly 16 fields in the order eval_counterfactuals expects ---
+        result.append(
+            (
+                x_cf,              # x_cf
+                x_rec,             # x_rec
+                z_cf,              # z_cf
+                z,                 # z
+                title_info,        # title_info
+                distance,          # distance
+                arg_max,           # arg_max
+                loss,              # loss
+                log_pred,          # log_pred
+                p_z,               # p_z
+                label_switch_step, # label_switch_step
+                opposite_class,    # y_cf_goal
+                coordinates,       # coordinates
+                x,                 # x_org
+                mean_cls,          # mean_cls
+                y,                 # y_org
+            )
+        )
 
     return result
-
 
 
 #
