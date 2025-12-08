@@ -734,15 +734,9 @@ def multiple_vanilla_counterfactuals(dataset_name, params, data_path_grid, add_i
     if not os.path.isdir(plot_path):
         os.mkdir(plot_path)
     # 0. load model
-    for model_name in ['SPN','MLP']:
-        betas = [1,0]
-        if model_name=='MLP':
-
-            gammas=[0]
-
-        else:
-
-            gammas=[1,0]
+    for model_name in ['SPN']:     # <-- only SPN for counterfactuals
+        betas = [1, 0]
+        gammas = [1, 0]            # SPN uses both gammas
 
 
         for b_i,beta in enumerate(betas):
