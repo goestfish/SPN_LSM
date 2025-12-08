@@ -135,7 +135,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
     # Precompute embedding_org related values
     embedding_org = torch.cat([z, add_info_t], dim=-1)
     with torch.no_grad():
-        pred_org, p_z_org = cnn_spn_model.spn_clf(embedding_org) # pred_org logits, p_z_org maybe log probs
+        pred_org, p_z_org = cnn_spn_model.spn_clf(embedding_org, training=False) # pred_org logits, p_z_org maybe log probs
     
     #optimization loop
     for step in range(num_steps):
@@ -145,7 +145,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
         embedding = torch.cat([z_prime, add_info_t], dim=-1)
 
          # get predictions and p(z) from SPN or MLP (expecting logits)
-        pred_logits, p_z = cnn_spn_model.spn_clf(embedding) # pred_logits: (batch_num_classes)
+        pred_logits, p_z = cnn_spn_model.spn_clf(embedding, training=False) # pred_logits: (batch_num_classes)
 
          # compute distance per sample (mean squared on latent dims)
         distance = torch.mean((z-z_prime) ** 2, dim=-1) # (batch, )
