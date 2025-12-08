@@ -12,7 +12,7 @@ from evaluation.metrics.summarizing_fkts import mean_cf, max_cf, min_loss, weigh
 
 
 def find_and_extract_files(folder_path):
-    pattern = re.compile(r"datab([\d-]+)g([\d-]+)(.+)_1000\.pkl")
+    pattern = re.compile(r"datab([\d-]+)g([\d-]+)(.+)_1000(?:_new)?\.pkl")
 
     extracted_data = []
 
