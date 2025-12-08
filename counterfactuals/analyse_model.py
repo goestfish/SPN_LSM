@@ -72,8 +72,7 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
         add_info = add_info, 
         num_classes = num_classes, 
         input_shape = input_shape, 
-        checkpoint_path = vae_ckpt_path,
-        path = path)
+        checkpoint_path = vae_ckpt_path)
     # 2. load spn_structure
     spn_data=pkl.load(open(data_path_fold+ 'spn.pkl', 'rb'))
     spn_clf=spn_data['spn_x']

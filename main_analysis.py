@@ -113,7 +113,7 @@ def get_cf_metrics(model_names,possible_values,fold_idxs):
     cf_performance_to_latex_summary(all_results, all_params)
     z_eval_cf_performance_to_latex_summary(all_results_z_eval, all_params)
 
-def plot_generated_cfs(model_names,possible_values):
+def plot_generated_cfs(model_names,possible_values, fold_idxs):
 
     for model_name in model_names:
         print(model_name)
@@ -122,12 +122,14 @@ def plot_generated_cfs(model_names,possible_values):
 
         data_path_grid=save_folder + model_name+'/grid'+str(grid_idx)+'/'
         params = pkl.load(open(data_path_grid + 'grid_params.pkl', 'rb'))
+        for fold_idx in fold_idxs:
 
-        plot_cfs(dataset_name,
-                     data_path_grid,
-                     model_name,
-                     fold_idxs=[fold_idx],
-                     possible_values=possible_values)
+
+            plot_cfs(dataset_name,
+                        data_path_grid,
+                        model_name,
+                        fold_idxs=[fold_idx],
+                        possible_values=possible_values)
 
 
 if __name__ == '__main__':
@@ -158,14 +160,14 @@ if __name__ == '__main__':
 
     save_folder ='cnn_spn_models/'
 
-    model_names=['test_model']
+    model_names=['full_run_100e_ft50']#,'cnn_spn_model_test'#['cnn_spn_model_test']#['full_run_100e_ft50']#
 
 
 
     get_performance_metrics(model_names,fold_idxs,path='')
     possible_values=[0,1]
     get_cf_metrics(model_names,possible_values,fold_idxs)
-    plot_generated_cfs(model_names,possible_values)
+    plot_generated_cfs(model_names, possible_values, fold_idxs)
 
 
 

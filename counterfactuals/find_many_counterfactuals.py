@@ -1,3 +1,5 @@
+import multiprocessing as mp
+mp.set_start_method("fork", force=True)
 from counterfactuals.analyse_model import load_model, load_VAE_model
 import os
 import sys
@@ -12,8 +14,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import multiprocessing as mp
-mp.set_start_method("spawn", force=True)
+
 from concurrent.futures import ProcessPoolExecutor
 import time
 from multiprocessing import Pool, set_start_method
