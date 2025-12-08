@@ -300,7 +300,12 @@ def process_image(image_idxs, input_data, bb_box_coordinates, model_name, opt_we
         additional_info = np.repeat(add_info_data, replicates, axis=0)
 
         pred = cnn_spn_model.model_execution_X(X, additional_info, training=False)
-        mean_cls = np.mean(np.argmax(pred.numpy(), axis=-1))
+        if isinstance(pred, torch.Tensor):
+            pred_np = pred.detach().cpu().numpy()
+        else:
+            pred_np = np.array(pred)
+
+        mean_cls = np.mean(np.argmax(pred_np, axis=-1))
         opposite_class = int((round(mean_cls) + 1) % 2)
         result.append(get_counterfactual_infos(image_idx,
             cnn_spn_model, X, additional_info, opposite_class, y, model_name, opt_weights,
