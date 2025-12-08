@@ -269,7 +269,7 @@ def create_counterfactual_data(plot_path,num_imgs,input_data,bb_box_coordinates,
         opposite_class = int((round(mean_cls)+ 1) % 2)
         # return reconstructions_np, rec_z_np,z_prime_np,z_np,title_info,distance_np,arg_max_np,loss_val,log_pred_val,p_z_np,label_switch_step,pred_np
         reconstructions, rec_z, z_prime, z, title_info, distance, arg_max, loss, log_pred, p_z,label_switch_step, pred_out = get_counterfactual_infos(
-            cnn_spn_model, X, additional_info, opposite_class, y, model_name,opt_weights,learning_rate = learning_rate,num_steps =num_steps)
+            image_idx, cnn_spn_model, X, additional_info, opposite_class, y,model_name, opt_weights, learning_rate=learning_rate, num_steps=num_steps)
 
         all_data.append((reconstructions, rec_z, title_info, distance, arg_max, loss, log_pred, p_z, opposite_class,
                          coordinates, x,mean_cls,y))
