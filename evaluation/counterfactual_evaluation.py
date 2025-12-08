@@ -7,7 +7,7 @@ from collections import Counter
 import random
 
 from counterfactuals.find_many_counterfactuals import make_individual_plot, make_raw_plot
-from evaluation.metrics.fid import compute_validity, compute_fid, compute_MAE, compute_MSE, compute_class_fid, compute_rel_L2, get_importance_region_information, mean_lsp_calculation
+from evaluation.metrics.fid import compute_validity, compute_fid, compute_MAE, compute_MSE, compute_class_fid, get_importance_region_information, mean_lsp_calculation
 from evaluation.metrics.summarizing_fkts import mean_cf, max_cf, min_loss, weighted
 
 
