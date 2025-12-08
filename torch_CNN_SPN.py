@@ -943,7 +943,6 @@ def train_model_parts(grid_params, cnn_spn, train_data, val_data, test_data,
                     )
 
             if improve and ckpt_path is not None:
-                import os, torch
                 os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
                 torch.save(cnn_spn.state_dict(), ckpt_path)
                 print(f"Saved CNN+SPN checkpoint to {ckpt_path}")
