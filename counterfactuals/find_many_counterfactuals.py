@@ -148,7 +148,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
 
          # compute distance per sample (mean squared on latent dims)
         distance = torch.mean((z-z_prime) ** 2, dim=-1) # (batch, )
-
+        log_pred = None
         if model_type == 'MLP':
             # CrossEntropy expects (batch, classes) logits and (batch,) targets
             test = ce_loss(pred_logits, y_opposite) # per-sample loss
@@ -171,7 +171,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
                 plaus_diff = torch.abs(p_z - p_z_org).reshape(-1)
             per_sample_loss = (-test) + (distance * opt_weights[0]) + (plaus_diff * opt_weights[1])
             loss = torch.mean(per_sample_loss)
-            log_red = -test.detach()
+            log_pred = -test.detach()
 
         else:
             raise ValueError("model_type must be either 'MLP' or 'SPN'")
@@ -189,7 +189,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
             if opposite_class and argmax_mean >= 0.5: 
                 switch = True
                 label_switch_step = step
-            elif (not opposite_class) and arg_max_mean <= 0.5:
+            elif (not opposite_class) and argmax_mean <= 0.5:
                 switch = True
                 label_switch_step = step
             # else switch stays False
@@ -199,7 +199,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
             argmax = argmax_vals
             loss_val = loss.detach().cpu().item()
             # log_pred - used nefgative per-sample test; take mean
-            if isinstance(loss_pred, torch.Tensor):
+            if isinstance(log_pred, torch.Tensor):
                 try:
                     log_pred_val = log_pred.mean().cpu().numpy()
                 except Exception:
@@ -234,7 +234,7 @@ def get_counterfactual_infos(img_idx,cnn_spn_model,X,additional_info,opposite_cl
     arg_max_np = np.asarray(arg_max) if arg_max is not None else None
     p_z_np = p_z_val if p_z_val is not None else None
     
-    print('Rec min max',np.min(rec_z),np.max(rec_z))
+    print('Rec min max', np.min(rec_z_np), np.max(rec_z_np))
     return reconstructions_np, rec_z_np,z_prime_np,z_np,title_info,distance_np,arg_max_np,loss_val,log_pred_val,p_z_np,label_switch_step,pred_np
 
 

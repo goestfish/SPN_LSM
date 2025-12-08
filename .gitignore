@@ -6,7 +6,7 @@ __pycache__/
 #Rashed
 data/
 chexpert.pkl
-
+tests_counterfactuals/
 # C extensions
 *.so
 

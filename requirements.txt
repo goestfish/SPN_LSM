@@ -18,7 +18,7 @@ psutil~=7.0.0
 gputil~=1.4.0
 pillow~=11.0.0
 datasets~=3.2.0
-spflow~=0.0.41
+#spflow~=0.0.41
 
 numpy==2.0.2
 networkx==2.8.8
