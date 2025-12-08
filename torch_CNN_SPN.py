@@ -829,7 +829,7 @@ class CNN_SPN_Parts(nn.Module):
 
 
 def train_model_parts(grid_params, cnn_spn, train_data, val_data, test_data,
-                      num_iterations, ckpt, manager, val_entropy, val_acc=0,
+                      num_iterations, ckpt_path=None, manager=None, val_entropy=0, val_acc=0,
                       add_info=False):
 
 
@@ -942,28 +942,11 @@ def train_model_parts(grid_params, cnn_spn, train_data, val_data, test_data,
                         add_info=add_info
                     )
 
-            if improve and ckpt is not None and manager is not None:
-                try:
-                    if len(ckpt) > 0 and hasattr(ckpt[0], "step"):
-                        step0 = ckpt[0].step
-                        if hasattr(step0, "assign_add"):
-                            step0.assign_add(1)
-                        elif isinstance(step0, (int, float)):
-                            ckpt[0].step = step0 + 1
-                    if len(manager) > 0 and hasattr(manager[0], "save"):
-                        manager[0].save()
-
-                    if len(ckpt) > 1 and hasattr(ckpt[1], "step"):
-                        step1 = ckpt[1].step
-                        if hasattr(step1, "assign_add"):
-                            step1.assign_add(1)
-                        elif isinstance(step1, (int, float)):
-                            ckpt[1].step = step1 + 1
-
-                    if len(manager) > 1 and hasattr(manager[1], "save"):
-                        manager[1].save()
-                except TypeError:
-                    pass
+            if improve and ckpt_path is not None:
+                import os, torch
+                os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
+                torch.save(cnn_spn.state_dict(), ckpt_path)
+                print(f"Saved CNN+SPN checkpoint to {ckpt_path}")
 
             print(
                 'val entropy', i,

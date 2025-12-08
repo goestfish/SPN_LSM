@@ -64,7 +64,9 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
         cnn_spn (nn.Module): Fully loaded PyTorch CNN+SPN model.
     """
     vae_ckpt_path=data_path_fold+'vae_checkpoints/pt_ckpts_last'
-    cnn_spn_ckpt_path = data_path_fold + 'cnn_spn_checkpoints'
+    cnn_spn_ckpt_dir = data_path_fold + 'cnn_spn_checkpoints'
+    ckpt_file = os.path.join(cnn_spn_ckpt_dir, 'pt_ckpts_last.pt')
+
 
     # 1. load vae:
     vae_model = load_VAE(
@@ -122,12 +124,19 @@ def load_model( add_info, num_classes, input_shape,data_path_fold,params,path=''
     #manager_cnn_spn = tf.train.CheckpointManager(ckpt_cnn_spn, checkpoint_path_cnn_spn, max_to_keep=1)
 
     #ckpt_cnn_spn.restore(manager_cnn_spn.latest_checkpoint)
-    try: 
-        ckpt_state = torch.load(cnn_spn_ckpt_path, map_location="cpu")
-        cnn_spn.load_state_dict(ckpt_state)
-        print(f"Loaded CNN+SPN checkpoint from {cnn_spn_ckpt_path}")
-    except FileNotFoundError:
-        print("WARNING: No CNN+SPN checkpoint found. Using randomly initialized weights.")
+    
+
+    if os.path.isfile(ckpt_file):
+        try:
+            ckpt_state = torch.load(ckpt_file, map_location="cpu")
+            cnn_spn.load_state_dict(ckpt_state)
+            print(f"Loaded CNN+SPN checkpoint from {ckpt_file}")
+        except Exception as e:
+            print(f"WARNING: Failed to load CNN+SPN checkpoint from {ckpt_file}: {e}")
+            print("Using randomly initialized CNN+SPN weights.")
+    else:
+        print(f"WARNING: No CNN+SPN checkpoint found (looked for {ckpt_file}).")
+        print("Using randomly initialized CNN+SPN weights.")
     return cnn_spn
 
 def plot_image_grid(images, ax, title,cmap='gray', alpha=1.0):

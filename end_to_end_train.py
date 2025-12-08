@@ -104,10 +104,9 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
     os.makedirs(checkpoint_path, exist_ok=True)
     os.makedirs(checkpoint_path_tmp, exist_ok=True)
 
-    checkpoint_path_cnn_spn=fold_path+'cnn_spn_checkpoints'
-    if not os.path.exists(checkpoint_path_cnn_spn):
-        os.mkdir(checkpoint_path_cnn_spn)
-    checkpoint_path_cnn_spn = checkpoint_path_cnn_spn + '/pt_ckpts_last'
+    cnn_spn_dir = os.path.join(fold_path, 'cnn_spn_checkpoints')
+    os.makedirs(cnn_spn_dir, exist_ok=True)
+    checkpoint_path_cnn_spn = os.path.join(cnn_spn_dir, 'pt_ckpts_last.pt')
 
 
 
@@ -250,7 +249,7 @@ def train_cnn_spn(grid_params,train_data,test_data,val_data,num_classes,debuggin
         print('TRAIN CNN+SPN',flush=True)
         eval_after_train,vae_debugg_stuff=train_model_parts(grid_params,cnn_spn, train_data, val_data,test_data,
                           num_iterations=grid_params.fine_tune_its,
-                          ckpt=[],manager=[],val_entropy=eval_before_train[1][1],val_acc=curr_acc,add_info=add_info)
+                          ckpt=checkpoint_path_cnn_spn,manager=None,val_entropy=eval_before_train[1][1],val_acc=curr_acc,add_info=add_info)
         all_vae_debug_stuff.append(vae_debugg_stuff)
         # save this:
         # save debugging stuff:
