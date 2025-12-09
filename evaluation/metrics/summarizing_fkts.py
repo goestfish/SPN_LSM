@@ -30,7 +30,21 @@ def min_loss(x_cf, additional_data,argmax_arr):
 def weighted(x_cf, additional_data,argmax_arr):
     # create weights in the area [0,1]
     rescale=rescale_to_01(additional_data)
-    arg_max_mean = np.sum(argmax_arr*rescale, axis=1)
+    if rescale.ndim == 1:
+        if rescale.shape[0] == argmax_arr.shape[1]:
+            # weights per replicate: shape (K,) -> (1, K)
+            weights = rescale[None, :]
+        elif rescale.shape[0] == argmax_arr.shape[0]:
+            # weights per image: shape (N,) -> (N, 1)
+            weights = rescale[:, None]
+        else:
+            # fallback: uniform weights over replicates
+            weights = np.ones_like(argmax_arr) / argmax_arr.shape[1]
+    else:
+        # if already 2D or more, try to broadcast directly
+        weights = rescale
+
+    arg_max_mean = np.sum(argmax_arr * weights, axis=1)
     upscale=np.expand_dims(np.expand_dims(np.expand_dims(rescale,axis=-1),axis=-1),axis=-1)
     x_cf_mean = np.sum(x_cf*upscale, axis=1)
 
