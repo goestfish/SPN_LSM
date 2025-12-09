@@ -398,15 +398,19 @@ def plot_cfs(dataset_name,
             for betas, gammas, model_n in zip([[0, 1], [0, 1]], [[0, 1], [0]], ['SPN', 'MLP']):
                 save_file_path = data_path_fold + str(image_num) + 'image_no_w_' + model_n + '.png'
                 save_file_path_raw = data_path_fold + str(image_num) + 'image_raw_' + model_n + '.png'
+                try:
 
-                make_individual_plot(
-                    image_num, betas, gammas, data_path_fold, save_file_path,
-                    model_n, diff_counterfactual_z, model_n, "mean(x-x')"
-                )
-                make_raw_plot(
-                    image_num, betas, gammas, data_path_fold, save_file_path_raw,
-                    model_n, diff_counterfactual_z, model_n, "mean(x-x')"
-                )
+                    make_individual_plot(
+                        image_num, betas, gammas, data_path_fold, save_file_path,
+                        model_n, diff_counterfactual_z, model_n, "mean(x-x')"
+                    )
+                    make_raw_plot(
+                        image_num, betas, gammas, data_path_fold, save_file_path_raw,
+                        model_n, diff_counterfactual_z, model_n, "mean(x-x')"
+                    )
+                except IndexError as e:
+                    print(f"[WARNING] Skipping image_num {image_num} due to IndexError: {e}")
+                    continue
 
 
 def eval_counterfactuals(dataset_name,
