@@ -616,12 +616,22 @@ def make_raw_plot(image_num, betas, gammas, plot_path,save_file_path_plot,model_
             else:
                 ax = axis[ b_i]
             if use_background:
-                ax.imshow(x_org[image_num][0, :, :, 0], cmap='gray')
+                differences_mean = np.squeeze(differences_mean)
+                if differences_mean.ndim > 2:
+                    # collapse any remaining leading dims if they exist
+                    differences_mean = np.mean(differences_mean, axis=0)
+
+                last_img = ax.imshow(differences_mean, cmap='gray')
 
                 #last_img=ax.imshow(differences_mean, cmap='jet', alpha=0.5)#,vmax=vmax,vmin=vmin)
                 # Add a colorbar specific to this subplot
                 fig.colorbar(last_img, ax=ax, orientation='vertical')
             else:
+                differences_mean = np.squeeze(differences_mean)
+                if differences_mean.ndim > 2:
+                    # collapse any remaining leading dims if they exist
+                    differences_mean = np.mean(differences_mean, axis=0)
+
                 last_img = ax.imshow(differences_mean, cmap='gray')
             ax.set_title(mini_title)
             if len(coordinates):
