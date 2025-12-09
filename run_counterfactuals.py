@@ -2,7 +2,7 @@ import pickle as pkl
 from counterfactuals.find_many_counterfactuals import multiple_vanilla_counterfactuals
 
 # ---- 1. Paths to your trained models ----
-DATA_PATH_GRID = "cnn_spn_models/full_run_100e_ft50/grid0/"  # ends with /
+DATA_PATH_GRID = "cnn_spn_models/full_run_100e_ft25/grid0/"  # ends with /
 
 # ---- 2. Load the params used for this grid run ----
 with open(DATA_PATH_GRID + "grid_params.pkl", "rb") as f:
@@ -32,6 +32,6 @@ if __name__ == "__main__":
         model_path=model_path,
         learning_rate=0.01,
         num_steps=150,
-        fold_idx=0,         # use 1 or 2 for other folds
+        fold_idx=2,         # use 1 or 2 for other folds
         replicates=50       # number of CF samples per image
     )

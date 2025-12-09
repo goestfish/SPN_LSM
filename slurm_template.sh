@@ -144,7 +144,7 @@ echo ""
 
 # First serious run (adjust hyperparams if you want)
 
-$EXEC_PATH $CONTAINER_PATH python -u main_pipeline.py --save_path full_run_100e_ft50 --epochs 100 --fine_tune_its 50 --batch_size 64 --use_VAE 1 --VAE_fine_tune 1 --use_add_info 1 --gauss_std 0.05 --learning_rate 0.0005
+$EXEC_PATH $CONTAINER_PATH python -u main_pipeline.py --save_path full_run_100e_ft25 --epochs 100 --fine_tune_its 25  --batch_size 64 --use_VAE 1 --VAE_fine_tune 1 --use_add_info 1 --gauss_std 0.05 --learning_rate 0.0005
 
 
 

@@ -1,0 +1,5 @@
+dataset,vae_name,beta,gamma,fold_idx,model_name,Max idx,Max freq,Median idx,Median freq,Min idx,Min freq,Diversity freq.,Switch epoch,Mean LSP
+chexpert,full_run_100e_ft25,0.0,0.0,0,SPN,14,0.5,41,0.5,41,0.5,1.0,95.5,0.0
+chexpert,full_run_100e_ft25,0.0,1.0,0,SPN,14,0.5,41,0.5,41,0.5,1.0,42.0,0.0
+chexpert,full_run_100e_ft25,1.0,0.0,0,SPN,14,0.5,41,0.5,41,0.5,1.0,95.5,0.0
+chexpert,full_run_100e_ft25,1.0,1.0,0,SPN,14,0.5,41,0.5,41,0.5,1.0,42.0,0.0

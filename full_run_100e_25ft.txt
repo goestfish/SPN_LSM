@@ -1,0 +1,715 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 14744877
+##  Job Name : SPN_LSM_Chexpert
+##  Nodelist : gpu2006
+##      CPUs : 1
+##  Mem/Node : 32000 MB
+## Directory : /oscar/home/ralmanso/csci1470/SPN_LSM
+##   Job Started : Mon Dec  8 03:28:57 PM EST 2025
+###############################################################################
+
+==========================================
+Job started at: Mon Dec  8 03:28:57 PM EST 2025
+Job ID: 14744877
+Node: gpu2006
+==========================================
+
+GPU Information (from host):
+Mon Dec  8 15:28:57 2025       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.129.03             Driver Version: 535.129.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  Quadro RTX 6000                On  | 00000000:40:00.0 Off |                  Off |
+| 33%   29C    P8               6W / 260W |     20MiB / 24576MiB |      0%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A     30575      G   /usr/libexec/Xorg                            18MiB |
++---------------------------------------------------------------------------------------+
+
+GPU Information (inside container):
+Mon Dec  8 15:28:58 2025       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.129.03             Driver Version: 535.129.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  Quadro RTX 6000                On  | 00000000:40:00.0 Off |                  Off |
+| 33%   29C    P8               6W / 260W |     20MiB / 24576MiB |      0%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A     30575      G   /usr/libexec/Xorg                            18MiB |
++---------------------------------------------------------------------------------------+
+
+PyTorch GPU Detection (inside container):
+Torch version: 2.9.1+cu128
+CUDA available: True
+GPU count: 1
+Current device: 0
+Device name: Quadro RTX 6000
+
+==========================================
+Installing Python dependencies (user-local)
+==========================================
+
+Working directory: /oscar/home/ralmanso/csci1470/SPN_LSM
+
+
+==========================================
+Starting main_pipeline.py at Mon Dec  8 03:29:01 PM EST 2025
+==========================================
+
+[PATCH] Added scipy.NINF = -np.inf
+[PATCH] Patched networkx.from_numpy_matrix → nx.from_numpy_array in spn.splitting.Base
+[PATCH] Patched learn_parametric() to ignore n_clusters
+####Used params:
+machine ['laptop']
+dense_lay_num [128]
+le_warmup [1]
+gauss_std [0.05]
+save_path ['full_run_100e_ft25']
+epochs [100]
+latent_dim [64]
+load_pretrain_model [0]
+dropout [0.0]
+learning_rate [0.0005]
+batch_size [64]
+num_layer [4]
+filter_size [3]
+end_dim_enc [128]
+use_VAE [1]
+use_KLD_anneal [0]
+num_filter_encoder [[16, 32, 62, 124, 124, 124, 124]]
+strides_encoder [[2, 1, 2, 1, 2, 1, 2]]
+num_filter_decoder [[1, 62, 62, 124, 124, 124, 248]]
+strides_decoder [[2, 1, 2, 1, 2, 1, 2]]
+semi_supervised [1]
+batchnorm_integration [0]
+shortcut [1]
+activation ['relu']
+VAE_debug [1]
+loss_weights [[[10.0, 0.001, 5.0]]]
+VAE_fine_tune [1]
+GAN [0]
+fine_tune_its [25]
+fine_tune_rate [0.0005]
+regression [10]
+min_instances_slice_percentage [0.2]
+min_features_slice [1]
+n_clusters [2]
+row_split ['kmeans']
+col_split ['rdc']
+fine_tune_leafs [1]
+gauss_embeds [0.05]
+use_add_info [1]
+separate_view [0]
+dataset_name ['chexpert']
+Grid len 1
+dataset name: chexpert
+(436, 128, 128) (436, 4)
+load chex
+add info: spn training 1
+(128, 128, 1)
+[VAE] Epoch 0 train_loss=892.3701 val_loss=878.2734
+[VAE] Epoch 1 train_loss=669.0829 val_loss=627.8145
+[VAE] Epoch 2 train_loss=557.1671 val_loss=520.6626
+[VAE] Epoch 3 train_loss=472.7568 val_loss=444.1080
+[VAE] Epoch 4 train_loss=423.5880 val_loss=431.2872
+[VAE] Epoch 5 train_loss=396.1547 val_loss=382.4039
+[VAE] Epoch 6 train_loss=379.2504 val_loss=380.6587
+[VAE] Epoch 7 train_loss=371.1061 val_loss=382.8525
+[VAE] Epoch 8 train_loss=353.3605 val_loss=360.7013
+[VAE] Epoch 9 train_loss=336.0357 val_loss=335.1173
+[VAE] Epoch 10 train_loss=328.3445 val_loss=328.2338
+[VAE] Epoch 11 train_loss=318.2190 val_loss=337.3023
+[VAE] Epoch 12 train_loss=311.5279 val_loss=330.5660
+[VAE] Epoch 13 train_loss=311.6023 val_loss=339.7486
+[VAE] Epoch 14 train_loss=308.9811 val_loss=316.1116
+[VAE] Epoch 15 train_loss=300.5725 val_loss=372.5428
+[VAE] Epoch 16 train_loss=300.5719 val_loss=319.6704
+[VAE] Epoch 17 train_loss=293.3580 val_loss=301.4701
+[VAE] Epoch 18 train_loss=283.5601 val_loss=293.0553
+[VAE] Epoch 19 train_loss=285.3333 val_loss=291.7458
+[VAE] Epoch 20 train_loss=278.2965 val_loss=306.2444
+[VAE] Epoch 21 train_loss=280.3972 val_loss=297.7853
+[VAE] Epoch 22 train_loss=269.9421 val_loss=291.1640
+[VAE] Epoch 23 train_loss=268.5736 val_loss=282.0473
+[VAE] Epoch 24 train_loss=264.4029 val_loss=282.7480
+[VAE] Epoch 25 train_loss=260.8985 val_loss=274.3069
+[VAE] Epoch 26 train_loss=254.9674 val_loss=280.9650
+[VAE] Epoch 27 train_loss=252.1735 val_loss=280.7267
+[VAE] Epoch 28 train_loss=251.1288 val_loss=273.2554
+[VAE] Epoch 29 train_loss=247.1871 val_loss=283.2369
+[VAE] Epoch 30 train_loss=244.3279 val_loss=264.6199
+[VAE] Epoch 31 train_loss=240.9911 val_loss=278.1004
+[VAE] Epoch 32 train_loss=240.0430 val_loss=262.0253
+[VAE] Epoch 33 train_loss=236.2112 val_loss=259.9031
+[VAE] Epoch 34 train_loss=232.8773 val_loss=279.0381
+[VAE] Epoch 35 train_loss=230.8236 val_loss=256.9952
+[VAE] Epoch 36 train_loss=226.0096 val_loss=268.3846
+[VAE] Epoch 37 train_loss=224.4670 val_loss=265.1742
+[VAE] Epoch 38 train_loss=228.2138 val_loss=268.1237
+[VAE] Epoch 39 train_loss=224.3888 val_loss=260.3564
+[VAE] Epoch 40 train_loss=223.2147 val_loss=262.9079
+[VAE] Epoch 41 train_loss=216.5191 val_loss=252.8136
+[VAE] Epoch 42 train_loss=215.6012 val_loss=252.3716
+[VAE] Epoch 43 train_loss=211.8644 val_loss=246.6640
+[VAE] Epoch 44 train_loss=207.7026 val_loss=269.6045
+[VAE] Epoch 45 train_loss=210.6533 val_loss=255.4351
+[VAE] Epoch 46 train_loss=205.7506 val_loss=260.1720
+[VAE] Epoch 47 train_loss=208.9374 val_loss=253.9945
+[VAE] Epoch 48 train_loss=208.2913 val_loss=264.6712
+[VAE] Epoch 49 train_loss=203.4921 val_loss=250.4625
+[VAE] Epoch 50 train_loss=201.6918 val_loss=257.9427
+[VAE] Epoch 51 train_loss=201.2848 val_loss=258.6046
+[VAE] Epoch 52 train_loss=197.6534 val_loss=259.1910
+[VAE] Epoch 53 train_loss=194.7210 val_loss=258.7250
+[VAE] Epoch 54 train_loss=193.2457 val_loss=251.0957
+[VAE] Epoch 55 train_loss=192.1583 val_loss=259.4064
+[VAE] Epoch 56 train_loss=192.0717 val_loss=258.7274
+[VAE] Epoch 57 train_loss=191.5702 val_loss=254.9224
+[VAE] Epoch 58 train_loss=192.7082 val_loss=261.6695
+[VAE] Epoch 59 train_loss=188.5686 val_loss=248.4821
+[VAE] Epoch 60 train_loss=186.3646 val_loss=249.8210
+[VAE] Epoch 61 train_loss=185.6429 val_loss=255.1051
+[VAE] Epoch 62 train_loss=183.5335 val_loss=240.8204
+[VAE] Epoch 63 train_loss=182.0381 val_loss=245.8136
+[VAE] Epoch 64 train_loss=179.3924 val_loss=245.4710
+[VAE] Epoch 65 train_loss=178.0006 val_loss=257.5899
+[VAE] Epoch 66 train_loss=178.7287 val_loss=257.1599
+[VAE] Epoch 67 train_loss=177.5980 val_loss=270.9745
+[VAE] Epoch 68 train_loss=179.1814 val_loss=266.3738
+[VAE] Epoch 69 train_loss=177.3398 val_loss=258.6890
+[VAE] Epoch 70 train_loss=173.0840 val_loss=252.7918
+[VAE] Epoch 71 train_loss=173.5273 val_loss=246.7330
+[VAE] Epoch 72 train_loss=174.9679 val_loss=255.0304
+[VAE] Epoch 73 train_loss=169.5501 val_loss=247.0952
+[VAE] Epoch 74 train_loss=171.4463 val_loss=253.4005
+[VAE] Epoch 75 train_loss=166.9222 val_loss=247.5220
+[VAE] Epoch 76 train_loss=167.5957 val_loss=251.3159
+[VAE] Epoch 77 train_loss=166.6784 val_loss=248.9072
+[VAE] Epoch 78 train_loss=165.4451 val_loss=245.4053
+[VAE] Epoch 79 train_loss=166.0503 val_loss=249.6241
+[VAE] Epoch 80 train_loss=164.9361 val_loss=252.3670
+[VAE] Epoch 81 train_loss=162.5844 val_loss=256.0861
+[VAE] Epoch 82 train_loss=163.4834 val_loss=252.3714
+[VAE] Epoch 83 train_loss=164.0046 val_loss=254.3789
+[VAE] Epoch 84 train_loss=161.7682 val_loss=250.6316
+[VAE] Epoch 85 train_loss=159.9817 val_loss=250.0281
+[VAE] Epoch 86 train_loss=162.5842 val_loss=262.6273
+[VAE] Epoch 87 train_loss=158.6636 val_loss=253.8847
+[VAE] Epoch 88 train_loss=156.2463 val_loss=248.8389
+[VAE] Epoch 89 train_loss=155.6152 val_loss=265.9836
+[VAE] Epoch 90 train_loss=158.4371 val_loss=255.8991
+[VAE] Epoch 91 train_loss=157.9740 val_loss=257.4123
+[VAE] Epoch 92 train_loss=154.3279 val_loss=251.0248
+[VAE] Epoch 93 train_loss=152.9611 val_loss=261.8108
+[VAE] Epoch 94 train_loss=156.1248 val_loss=257.6289
+[VAE] Epoch 95 train_loss=154.4527 val_loss=249.6197
+[VAE] Epoch 96 train_loss=149.4261 val_loss=256.8561
+[VAE] Epoch 97 train_loss=148.3873 val_loss=249.3500
+[VAE] Epoch 98 train_loss=146.9999 val_loss=256.0299
+[VAE] Epoch 99 train_loss=146.3061 val_loss=253.2350
+save debugging file
+[VAE] Restored from cnn_spn_models/full_run_100e_ft25/grid0/fold_0/vae_checkpoints/pt_ckpts_last.pt
+[VAE] train_loss=176.9091 val_loss=240.8754 test_loss=241.9897
+MLP eval [[176.909132946047], [240.87536746080417], [241.98970067223837]]
+START EMBEDDING ['flatten']
+Embedding shape dataset 0 (1170, 64)
+Embedding shape dataset 1 (430, 64)
+(1170, 3)
+min_instances_slice 234 1170
+[SPN] Warning: n_clusters is not supported by this spflow version, ignoring it.
+TEST Result Acc after SPN training 0.5744186046511628 time: 0.0
+STRUCTURE STATS
+---Structure Statistics---
+# nodes             537
+    # sum nodes     4
+    # prod nodes    11
+    # leaf nodes    522
+# params            1053
+# edges             536
+# layers            7
+SPN ROOT weights: [np.float64(0.5222222222222223), np.float64(0.4777777777777778)]
+BEFORE CNN+SPN TRAIN
+[0.5859375, 1.9901602268218994, np.float64(0.5904250984652994), np.float64(0.5546218487394958), np.float64(0.7135135135135136), np.float64(0.624113475177305), np.float64(0.6204838003832979)]
+[0.5902777777777778, 2.0158488750457764, np.float64(0.5751217137293086), np.float64(0.6047120418848168), np.float64(0.7310126582278481), np.float64(0.66189111747851), np.float64(0.5825949367088608)]
+[0.5859375, 1.8126012086868286, np.float64(0.5865095081789328), np.float64(0.5683760683760684), np.float64(0.6963350785340314), np.float64(0.6258823529411764), np.float64(0.6135962889618316)]
+TRAIN CNN+SPN
+number of trainable variables in cnn spn: 18269555
+0 loss [1.31824875e+01 8.78103543e-03 2.59926033e+00 1.05654116e+01]
+val entropy 0 4.738102912902832 improve False curr acc 0.4965277777777778 0.5186465433300876 best acc 0.5751217137293086
+curr rec N/A best rec: 100000000.0
+loss 0: 12.05411 - 0.01039 - 2.36662 - 13.26271 - 
+loss 1: 7.14124 - 0.01122 - 1.38185 - 7.49963 - 
+loss 2: 4.30966 - 0.01118 - 0.81587 - 6.65417 - 
+[0.7612847222222222, 0.5009190440177917, np.float64(0.7554212503961248), np.float64(0.868421052631579), np.float64(0.5945945945945946), np.float64(0.7058823529411765), np.float64(0.8868426215159884)]
+[0.640625, 0.846876859664917, np.float64(0.6557692307692308), np.float64(0.7632850241545893), np.float64(0.5), np.float64(0.6042065009560229), np.float64(0.7509006815968842)]
+[0.6536458333333334, 0.8690729737281799, np.float64(0.6524292651167838), np.float64(0.7843137254901961), np.float64(0.418848167539267), np.float64(0.5460750853242321), np.float64(0.7615766486721103)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_0/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 3 0.846876859664917 improve True curr acc 0.640625 0.6557692307692308 best acc 0.6557692307692308
+curr rec N/A best rec: 100000000.0
+loss 3: 3.45046 - 0.01098 - 0.64504 - 5.58243 - 
+loss 4: 2.84969 - 0.01033 - 0.52759 - 5.16235 - 
+loss 5: 2.65354 - 0.00997 - 0.48982 - 4.96433 - 
+val entropy 6 1.0044876337051392 improve False curr acc 0.6354166666666666 0.6540895813047711 best acc 0.6557692307692308
+curr rec N/A best rec: 100000000.0
+loss 6: 2.56843 - 0.01014 - 0.47214 - 4.92574 - 
+loss 7: 2.5691 - 0.01015 - 0.47233 - 4.54146 - 
+loss 8: 2.0291 - 0.00987 - 0.36539 - 4.66687 - 
+[0.9053819444444444, 0.22903376817703247, np.float64(0.9079496582009146), np.float64(0.8484375), np.float64(0.9783783783783784), np.float64(0.9087866108786611), np.float64(0.9741077761178264)]
+[0.7465277777777778, 0.7036149501800537, np.float64(0.7359298928919182), np.float64(0.7335164835164835), np.float64(0.8449367088607594), np.float64(0.7852941176470588), np.float64(0.8039313534566699)]
+[0.7421875, 0.7241390347480774, np.float64(0.7426009820144861), np.float64(0.7072072072072072), np.float64(0.8219895287958116), np.float64(0.7602905569007264), np.float64(0.8119252366871932)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_0/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 9 0.7036149501800537 improve True curr acc 0.7465277777777778 0.7359298928919182 best acc 0.7359298928919182
+curr rec N/A best rec: 100000000.0
+loss 9: 1.77034 - 0.00969 - 0.31432 - 4.83107 - 
+loss 10: 1.57905 - 0.00978 - 0.27568 - 5.04088 - 
+loss 11: 2.0264 - 0.00985 - 0.36483 - 5.26733 - 
+val entropy 12 0.8916774392127991 improve False curr acc 0.7204861111111112 0.7138997078870497 best acc 0.7359298928919182
+curr rec N/A best rec: 100000000.0
+loss 12: 1.7111 - 0.01005 - 0.30099 - 5.06632 - 
+loss 13: 1.41444 - 0.01015 - 0.24125 - 5.18848 - 
+loss 14: 1.03736 - 0.00962 - 0.16796 - 5.13488 - 
+val entropy 15 0.8872183561325073 improve False curr acc 0.7326388888888888 0.7198636806231743 best acc 0.7359298928919182
+curr rec N/A best rec: 100000000.0
+loss 15: 0.87774 - 0.00963 - 0.13596 - 5.41367 - 
+loss 16: 0.8488 - 0.00933 - 0.13127 - 5.75759 - 
+loss 17: 0.97242 - 0.00953 - 0.15516 - 5.94762 - 
+[0.9861111111111112, 0.046470269560813904, np.float64(0.9865996649916248), np.float64(0.9719789842381786), np.float64(1.0), np.float64(0.9857904085257548), np.float64(0.9996076478488539)]
+[0.7517361111111112, 1.0391576290130615, np.float64(0.7434031158714702), np.float64(0.7464387464387464), np.float64(0.8291139240506329), np.float64(0.7856071964017991), np.float64(0.815841041869523)]
+[0.7630208333333334, 0.9925980567932129, np.float64(0.7630550958956135), np.float64(0.7577319587628866), np.float64(0.7696335078534031), np.float64(0.7636363636363637), np.float64(0.836163632911049)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_0/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 18 1.0391576290130615 improve True curr acc 0.7517361111111112 0.7434031158714702 best acc 0.7434031158714702
+curr rec N/A best rec: 100000000.0
+loss 18: 0.69027 - 0.00964 - 0.09832 - 5.8909 - 
+loss 19: 0.62871 - 0.0094 - 0.08689 - 6.31191 - 
+loss 20: 0.65416 - 0.00914 - 0.09298 - 6.5472 - 
+[0.9878472222222222, 0.045052483677864075, np.float64(0.9873873873873874), np.float64(1.0), np.float64(0.9747747747747748), np.float64(0.9872262773722628), np.float64(0.9996619735313202)]
+[0.7430555555555556, 1.2340164184570312, np.float64(0.7450340798442063), np.float64(0.7896551724137931), np.float64(0.7246835443037974), np.float64(0.7557755775577558), np.float64(0.8081609055501461)]
+[0.7317708333333334, 1.3023407459259033, np.float64(0.7313702086102596), np.float64(0.7716049382716049), np.float64(0.6544502617801047), np.float64(0.7082152974504249), np.float64(0.8132816102867373)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_0/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 21 1.2340165376663208 improve True curr acc 0.7430555555555556 0.7450340798442063 best acc 0.7450340798442063
+curr rec N/A best rec: 100000000.0
+loss 21: 0.69308 - 0.00932 - 0.10007 - 6.2995 - 
+loss 22: 0.80092 - 0.00946 - 0.12102 - 6.56794 - 
+loss 23: 0.64904 - 0.00948 - 0.09065 - 6.15114 - 
+val entropy 24 1.3384488821029663 improve False curr acc 0.7170138888888888 0.7107351509250244 best acc 0.7450340798442063
+curr rec N/A best rec: 100000000.0
+loss 24: 0.42166 - 0.00919 - 0.04635 - 6.0042 - 
+fine tune train time 5.0
+save debugging file
+ACC increase: 0.7430555555555556 0.5902777777777778 0.1527777777777778
+EVAL TIME OF ONE SPLIT: 8.0
+add info: spn training 1
+(128, 128, 1)
+[VAE] Epoch 0 train_loss=1135.5825 val_loss=1021.5069
+[VAE] Epoch 1 train_loss=885.4846 val_loss=826.7037
+[VAE] Epoch 2 train_loss=711.1590 val_loss=636.8549
+[VAE] Epoch 3 train_loss=562.3227 val_loss=503.8936
+[VAE] Epoch 4 train_loss=468.0998 val_loss=453.6262
+[VAE] Epoch 5 train_loss=426.0291 val_loss=433.8268
+[VAE] Epoch 6 train_loss=415.1600 val_loss=423.5821
+[VAE] Epoch 7 train_loss=394.5201 val_loss=394.4630
+[VAE] Epoch 8 train_loss=377.0611 val_loss=384.9600
+[VAE] Epoch 9 train_loss=369.9468 val_loss=379.7044
+[VAE] Epoch 10 train_loss=355.4619 val_loss=358.4031
+[VAE] Epoch 11 train_loss=339.4037 val_loss=348.1464
+[VAE] Epoch 12 train_loss=331.4866 val_loss=342.2235
+[VAE] Epoch 13 train_loss=322.3356 val_loss=329.2917
+[VAE] Epoch 14 train_loss=316.4887 val_loss=343.9057
+[VAE] Epoch 15 train_loss=309.6470 val_loss=323.7252
+[VAE] Epoch 16 train_loss=305.6452 val_loss=326.0969
+[VAE] Epoch 17 train_loss=297.8452 val_loss=322.0936
+[VAE] Epoch 18 train_loss=296.7863 val_loss=310.3991
+[VAE] Epoch 19 train_loss=290.7529 val_loss=307.9509
+[VAE] Epoch 20 train_loss=288.7852 val_loss=333.6669
+[VAE] Epoch 21 train_loss=289.5076 val_loss=304.1394
+[VAE] Epoch 22 train_loss=280.3889 val_loss=300.2363
+[VAE] Epoch 23 train_loss=273.6775 val_loss=313.9874
+[VAE] Epoch 24 train_loss=273.1879 val_loss=306.1540
+[VAE] Epoch 25 train_loss=269.4645 val_loss=295.6098
+[VAE] Epoch 26 train_loss=266.2024 val_loss=289.2702
+[VAE] Epoch 27 train_loss=259.1836 val_loss=282.8894
+[VAE] Epoch 28 train_loss=256.7044 val_loss=300.9407
+[VAE] Epoch 29 train_loss=255.6035 val_loss=278.8964
+[VAE] Epoch 30 train_loss=253.8258 val_loss=286.5325
+[VAE] Epoch 31 train_loss=247.9147 val_loss=277.4395
+[VAE] Epoch 32 train_loss=246.3856 val_loss=283.4734
+[VAE] Epoch 33 train_loss=242.1283 val_loss=278.3538
+[VAE] Epoch 34 train_loss=242.1987 val_loss=287.9066
+[VAE] Epoch 35 train_loss=240.0849 val_loss=281.6861
+[VAE] Epoch 36 train_loss=239.9696 val_loss=284.4324
+[VAE] Epoch 37 train_loss=237.5402 val_loss=289.6119
+[VAE] Epoch 38 train_loss=234.6590 val_loss=281.6677
+[VAE] Epoch 39 train_loss=230.9805 val_loss=269.0714
+[VAE] Epoch 40 train_loss=230.8209 val_loss=279.5920
+[VAE] Epoch 41 train_loss=223.6131 val_loss=271.0954
+[VAE] Epoch 42 train_loss=225.2542 val_loss=262.5518
+[VAE] Epoch 43 train_loss=219.9949 val_loss=269.4544
+[VAE] Epoch 44 train_loss=220.7103 val_loss=274.7480
+[VAE] Epoch 45 train_loss=217.3806 val_loss=266.1403
+[VAE] Epoch 46 train_loss=215.8500 val_loss=262.1909
+[VAE] Epoch 47 train_loss=212.4327 val_loss=272.8274
+[VAE] Epoch 48 train_loss=214.5951 val_loss=260.9192
+[VAE] Epoch 49 train_loss=214.0313 val_loss=267.1889
+[VAE] Epoch 50 train_loss=208.4424 val_loss=258.7043
+[VAE] Epoch 51 train_loss=204.0447 val_loss=269.2317
+[VAE] Epoch 52 train_loss=204.8475 val_loss=254.4988
+[VAE] Epoch 53 train_loss=203.5627 val_loss=272.6557
+[VAE] Epoch 54 train_loss=202.1596 val_loss=266.6031
+[VAE] Epoch 55 train_loss=200.3272 val_loss=256.7172
+[VAE] Epoch 56 train_loss=196.6465 val_loss=253.7304
+[VAE] Epoch 57 train_loss=196.0325 val_loss=256.7123
+[VAE] Epoch 58 train_loss=194.7133 val_loss=268.7023
+[VAE] Epoch 59 train_loss=192.9773 val_loss=253.7544
+[VAE] Epoch 60 train_loss=190.5917 val_loss=254.5268
+[VAE] Epoch 61 train_loss=188.8207 val_loss=253.4286
+[VAE] Epoch 62 train_loss=187.5925 val_loss=259.4716
+[VAE] Epoch 63 train_loss=185.5283 val_loss=254.8097
+[VAE] Epoch 64 train_loss=182.9629 val_loss=256.9890
+[VAE] Epoch 65 train_loss=185.6353 val_loss=278.0413
+[VAE] Epoch 66 train_loss=184.7899 val_loss=250.7832
+[VAE] Epoch 67 train_loss=179.8930 val_loss=254.3879
+[VAE] Epoch 68 train_loss=175.5547 val_loss=249.7501
+[VAE] Epoch 69 train_loss=174.5363 val_loss=250.5563
+[VAE] Epoch 70 train_loss=175.3386 val_loss=263.4332
+[VAE] Epoch 71 train_loss=177.0032 val_loss=259.3958
+[VAE] Epoch 72 train_loss=174.8599 val_loss=256.3185
+[VAE] Epoch 73 train_loss=173.0244 val_loss=252.7851
+[VAE] Epoch 74 train_loss=171.7670 val_loss=258.0450
+[VAE] Epoch 75 train_loss=172.0427 val_loss=257.5491
+[VAE] Epoch 76 train_loss=167.7252 val_loss=255.9928
+[VAE] Epoch 77 train_loss=168.3094 val_loss=260.7839
+[VAE] Epoch 78 train_loss=166.1992 val_loss=252.1364
+[VAE] Epoch 79 train_loss=164.6669 val_loss=254.7050
+[VAE] Epoch 80 train_loss=164.0380 val_loss=251.3501
+[VAE] Epoch 81 train_loss=161.5095 val_loss=255.3606
+[VAE] Epoch 82 train_loss=162.5011 val_loss=267.1354
+[VAE] Epoch 83 train_loss=163.4284 val_loss=257.4874
+[VAE] Epoch 84 train_loss=166.1695 val_loss=262.1399
+[VAE] Epoch 85 train_loss=163.3113 val_loss=261.1315
+[VAE] Epoch 86 train_loss=159.7613 val_loss=265.8151
+[VAE] Epoch 87 train_loss=158.4477 val_loss=256.0035
+[VAE] Epoch 88 train_loss=158.8178 val_loss=259.2810
+[VAE] Epoch 89 train_loss=158.9678 val_loss=263.2661
+[VAE] Epoch 90 train_loss=157.2780 val_loss=273.3378
+[VAE] Epoch 91 train_loss=158.8353 val_loss=255.5941
+[VAE] Epoch 92 train_loss=153.1736 val_loss=269.2307
+[VAE] Epoch 93 train_loss=152.1148 val_loss=255.8714
+[VAE] Epoch 94 train_loss=152.6427 val_loss=252.6167
+[VAE] Epoch 95 train_loss=147.9352 val_loss=254.1516
+[VAE] Epoch 96 train_loss=147.8693 val_loss=252.2245
+[VAE] Epoch 97 train_loss=147.5006 val_loss=259.7815
+[VAE] Epoch 98 train_loss=146.9218 val_loss=266.4729
+[VAE] Epoch 99 train_loss=148.7484 val_loss=261.4885
+save debugging file
+[VAE] Restored from cnn_spn_models/full_run_100e_ft25/grid0/fold_1/vae_checkpoints/pt_ckpts_last.pt
+[VAE] train_loss=171.1823 val_loss=249.3615 test_loss=251.2359
+MLP eval [[171.1823246774258], [249.36152928018163], [251.23590570494187]]
+START EMBEDDING ['flatten']
+Embedding shape dataset 0 (1171, 64)
+Embedding shape dataset 1 (430, 64)
+(1171, 3)
+min_instances_slice 234 1171
+[SPN] Warning: n_clusters is not supported by this spflow version, ignoring it.
+TEST Result Acc after SPN training 0.5813953488372093 time: 0.0
+STRUCTURE STATS
+---Structure Statistics---
+# nodes             472
+    # sum nodes     4
+    # prod nodes    10
+    # leaf nodes    458
+# params            924
+# edges             471
+# layers            7
+SPN ROOT weights: [np.float64(0.4935952177625961), np.float64(0.5064047822374039)]
+BEFORE CNN+SPN TRAIN
+[0.6302083333333334, 1.3136577606201172, np.float64(0.6299681651553155), np.float64(0.6321070234113713), np.float64(0.6472602739726028), np.float64(0.6395939086294417), np.float64(0.6863800525757284)]
+[0.5572916666666666, 1.7991629838943481, np.float64(0.5580040526849037), np.float64(0.5439739413680782), np.float64(0.5921985815602837), np.float64(0.567062818336163), np.float64(0.5755415641433879)]
+[0.5755208333333334, 1.4475616216659546, np.float64(0.5756856468545697), np.float64(0.5686274509803921), np.float64(0.6073298429319371), np.float64(0.5873417721518988), np.float64(0.6358950709383393)]
+TRAIN CNN+SPN
+number of trainable variables in cnn spn: 18269555
+0 loss [6.16714478e+00 8.25286470e-03 1.19875157e+00 8.32989120e+00]
+[0.6883680555555556, 0.8476374745368958, np.float64(0.6860770789118271), np.float64(0.64629388816645), np.float64(0.851027397260274), np.float64(0.7346637102734663), np.float64(0.7595564827320085)]
+[0.6284722222222222, 1.1594164371490479, np.float64(0.6319293674916775), np.float64(0.5890052356020943), np.float64(0.7978723404255319), np.float64(0.677710843373494), np.float64(0.6669561441597915)]
+[0.6197916666666666, 1.0890389680862427, np.float64(0.620839323983398), np.float64(0.5836431226765799), np.float64(0.8219895287958116), np.float64(0.6826086956521739), np.float64(0.6906654368879364)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_1/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 0 1.1594163179397583 improve True curr acc 0.6284722222222222 0.6319293674916775 best acc 0.6319293674916775
+curr rec N/A best rec: 100000000.0
+loss 0: 7.3068 - 0.01007 - 1.41938 - 8.47482 - 
+loss 1: 4.55245 - 0.01082 - 0.86586 - 6.6825 - 
+loss 2: 3.53321 - 0.01078 - 0.6625 - 5.07616 - 
+[0.8064236111111112, 0.4617137908935547, np.float64(0.806856550260467), np.float64(0.8311926605504587), np.float64(0.7756849315068494), np.float64(0.8024800708591674), np.float64(0.8873390169785838)]
+[0.7239583333333334, 0.7018725275993347, np.float64(0.7234404400057896), np.float64(0.7269372693726938), np.float64(0.6985815602836879), np.float64(0.7124773960216998), np.float64(0.789935832489024)]
+[0.6796875, 0.8224462866783142, np.float64(0.6795024821636871), np.float64(0.6910112359550562), np.float64(0.643979057591623), np.float64(0.6666666666666666), np.float64(0.7534384070748448)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_1/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 3 0.7018725872039795 improve True curr acc 0.7239583333333334 0.7234404400057896 best acc 0.7234404400057896
+curr rec N/A best rec: 100000000.0
+loss 3: 3.02647 - 0.01046 - 0.56251 - 4.65438 - 
+loss 4: 2.92816 - 0.01012 - 0.5443 - 4.27688 - 
+loss 5: 2.23279 - 0.01029 - 0.40458 - 4.04887 - 
+val entropy 6 0.7588346004486084 improve False curr acc 0.7135416666666666 0.7174337820234478 best acc 0.7234404400057896
+curr rec N/A best rec: 100000000.0
+loss 6: 2.19329 - 0.01017 - 0.39714 - 4.2225 - 
+loss 7: 1.72529 - 0.01037 - 0.30273 - 4.24472 - 
+loss 8: 1.68961 - 0.00998 - 0.29717 - 4.23435 - 
+val entropy 9 0.9662734270095825 improve False curr acc 0.7118055555555556 0.7134172818063396 best acc 0.7234404400057896
+curr rec N/A best rec: 100000000.0
+loss 9: 1.38126 - 0.01053 - 0.23336 - 3.85511 - 
+loss 10: 1.35235 - 0.01039 - 0.22807 - 4.15417 - 
+loss 11: 1.68481 - 0.01085 - 0.29268 - 4.46741 - 
+val entropy 12 1.0664218664169312 improve False curr acc 0.7204861111111112 0.7208351425676653 best acc 0.7234404400057896
+curr rec N/A best rec: 100000000.0
+loss 12: 1.23288 - 0.01041 - 0.20406 - 4.43711 - 
+loss 13: 0.76829 - 0.01006 - 0.1125 - 4.58344 - 
+loss 14: 0.56201 - 0.00973 - 0.07256 - 4.62069 - 
+[0.9817708333333334, 0.057254500687122345, np.float64(0.9815382018136215), np.float64(0.966832504145937), np.float64(0.9982876712328768), np.float64(0.9823083403538332), np.float64(0.9994814779085471)]
+[0.7256944444444444, 1.3628968000411987, np.float64(0.7281082645824287), np.float64(0.6761363636363636), np.float64(0.8439716312056738), np.float64(0.750788643533123), np.float64(0.7758780817291455)]
+[0.7057291666666666, 1.1591007709503174, np.float64(0.7061145321867455), np.float64(0.6772727272727272), np.float64(0.7801047120418848), np.float64(0.7250608272506083), np.float64(0.8001519138431489)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_1/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 15 1.3628971576690674 improve True curr acc 0.7256944444444444 0.7281082645824287 best acc 0.7281082645824287
+curr rec N/A best rec: 100000000.0
+loss 15: 0.48861 - 0.00974 - 0.05779 - 4.88544 - 
+loss 16: 0.57101 - 0.0097 - 0.07439 - 5.1308 - 
+loss 17: 0.53249 - 0.00967 - 0.06683 - 5.03493 - 
+val entropy 18 1.1987053155899048 improve False curr acc 0.7222222222222222 0.724706904038211 best acc 0.7281082645824287
+curr rec N/A best rec: 100000000.0
+loss 18: 0.81368 - 0.00996 - 0.12192 - 4.91793 - 
+loss 19: 0.71345 - 0.01021 - 0.1009 - 4.72099 - 
+loss 20: 0.59281 - 0.00982 - 0.0783 - 4.81601 - 
+[0.9861111111111112, 0.04372858256101608, np.float64(0.9862772525564345), np.float64(0.9982456140350877), np.float64(0.9743150684931506), np.float64(0.9861351819757366), np.float64(0.9998914721203936)]
+[0.7309027777777778, 1.8345915079116821, np.float64(0.7294470979881313), np.float64(0.7591836734693878), np.float64(0.6595744680851063), np.float64(0.7058823529411765), np.float64(0.8135704636464514)]
+[0.7239583333333334, 1.873732566833496, np.float64(0.7234082955809348), np.float64(0.7814569536423841), np.float64(0.6178010471204188), np.float64(0.6900584795321637), np.float64(0.8344139109676368)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_1/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 21 1.8345915079116821 improve True curr acc 0.7309027777777778 0.7294470979881313 best acc 0.7294470979881313
+curr rec N/A best rec: 100000000.0
+loss 21: 0.43416 - 0.00972 - 0.04691 - 5.13098 - 
+loss 22: 0.78402 - 0.01011 - 0.11535 - 5.15403 - 
+loss 23: 0.74858 - 0.01068 - 0.10602 - 4.86081 - 
+val entropy 24 1.4324079751968384 improve False curr acc 0.7256944444444444 0.7277464177160227 best acc 0.7294470979881313
+curr rec N/A best rec: 100000000.0
+loss 24: 0.5411 - 0.01025 - 0.06623 - 4.87909 - 
+fine tune train time 5.0
+save debugging file
+ACC increase: 0.7309027777777778 0.5572916666666666 0.17361111111111116
+EVAL TIME OF ONE SPLIT: 7.0
+add info: spn training 1
+(128, 128, 1)
+[VAE] Epoch 0 train_loss=981.3304 val_loss=926.4744
+[VAE] Epoch 1 train_loss=634.6000 val_loss=582.8726
+[VAE] Epoch 2 train_loss=519.6288 val_loss=535.2275
+[VAE] Epoch 3 train_loss=460.7921 val_loss=460.2765
+[VAE] Epoch 4 train_loss=427.5653 val_loss=474.5511
+[VAE] Epoch 5 train_loss=409.1762 val_loss=430.9533
+[VAE] Epoch 6 train_loss=390.4035 val_loss=429.8780
+[VAE] Epoch 7 train_loss=372.1683 val_loss=393.0240
+[VAE] Epoch 8 train_loss=356.7751 val_loss=386.0792
+[VAE] Epoch 9 train_loss=344.5401 val_loss=357.2253
+[VAE] Epoch 10 train_loss=329.4836 val_loss=353.3517
+[VAE] Epoch 11 train_loss=320.0487 val_loss=339.6311
+[VAE] Epoch 12 train_loss=314.6367 val_loss=345.5030
+[VAE] Epoch 13 train_loss=310.2382 val_loss=333.2621
+[VAE] Epoch 14 train_loss=302.1589 val_loss=317.3520
+[VAE] Epoch 15 train_loss=293.4390 val_loss=320.2938
+[VAE] Epoch 16 train_loss=292.8630 val_loss=305.2578
+[VAE] Epoch 17 train_loss=282.5843 val_loss=301.6901
+[VAE] Epoch 18 train_loss=281.2157 val_loss=304.0826
+[VAE] Epoch 19 train_loss=276.8611 val_loss=304.6817
+[VAE] Epoch 20 train_loss=269.8458 val_loss=306.1503
+[VAE] Epoch 21 train_loss=268.4606 val_loss=300.7656
+[VAE] Epoch 22 train_loss=264.4550 val_loss=304.6586
+[VAE] Epoch 23 train_loss=262.8508 val_loss=295.8985
+[VAE] Epoch 24 train_loss=258.6004 val_loss=289.0006
+[VAE] Epoch 25 train_loss=254.2617 val_loss=294.3650
+[VAE] Epoch 26 train_loss=250.5023 val_loss=281.8631
+[VAE] Epoch 27 train_loss=252.6593 val_loss=286.6143
+[VAE] Epoch 28 train_loss=248.0190 val_loss=285.6306
+[VAE] Epoch 29 train_loss=245.1332 val_loss=279.6223
+[VAE] Epoch 30 train_loss=241.6310 val_loss=281.3582
+[VAE] Epoch 31 train_loss=245.7211 val_loss=279.3063
+[VAE] Epoch 32 train_loss=238.3556 val_loss=274.0179
+[VAE] Epoch 33 train_loss=232.9029 val_loss=268.4430
+[VAE] Epoch 34 train_loss=228.3726 val_loss=270.3254
+[VAE] Epoch 35 train_loss=226.7506 val_loss=274.1146
+[VAE] Epoch 36 train_loss=223.5031 val_loss=288.5733
+[VAE] Epoch 37 train_loss=226.0518 val_loss=278.3858
+[VAE] Epoch 38 train_loss=224.9231 val_loss=269.7428
+[VAE] Epoch 39 train_loss=220.7499 val_loss=272.0371
+[VAE] Epoch 40 train_loss=218.7116 val_loss=269.9653
+[VAE] Epoch 41 train_loss=214.5390 val_loss=270.6168
+[VAE] Epoch 42 train_loss=209.7491 val_loss=266.6718
+[VAE] Epoch 43 train_loss=210.4962 val_loss=265.3415
+[VAE] Epoch 44 train_loss=209.2737 val_loss=283.7651
+[VAE] Epoch 45 train_loss=206.8599 val_loss=273.2650
+[VAE] Epoch 46 train_loss=205.0082 val_loss=266.5768
+[VAE] Epoch 47 train_loss=204.2445 val_loss=271.0692
+[VAE] Epoch 48 train_loss=200.0007 val_loss=260.9337
+[VAE] Epoch 49 train_loss=198.1218 val_loss=268.3237
+[VAE] Epoch 50 train_loss=196.6955 val_loss=269.6598
+[VAE] Epoch 51 train_loss=197.3174 val_loss=270.9697
+[VAE] Epoch 52 train_loss=196.8459 val_loss=273.0067
+[VAE] Epoch 53 train_loss=193.6480 val_loss=270.7468
+[VAE] Epoch 54 train_loss=191.1121 val_loss=277.5109
+[VAE] Epoch 55 train_loss=192.0959 val_loss=263.4584
+[VAE] Epoch 56 train_loss=188.2302 val_loss=259.5409
+[VAE] Epoch 57 train_loss=187.8543 val_loss=254.1904
+[VAE] Epoch 58 train_loss=183.9235 val_loss=278.2834
+[VAE] Epoch 59 train_loss=183.6539 val_loss=262.6992
+[VAE] Epoch 60 train_loss=180.2062 val_loss=264.7374
+[VAE] Epoch 61 train_loss=179.3441 val_loss=259.9583
+[VAE] Epoch 62 train_loss=178.3311 val_loss=271.9743
+[VAE] Epoch 63 train_loss=181.6642 val_loss=264.2661
+[VAE] Epoch 64 train_loss=176.3398 val_loss=261.5689
+[VAE] Epoch 65 train_loss=174.6748 val_loss=270.6341
+[VAE] Epoch 66 train_loss=172.8667 val_loss=256.9794
+[VAE] Epoch 67 train_loss=172.6709 val_loss=264.2411
+[VAE] Epoch 68 train_loss=174.2889 val_loss=261.4054
+[VAE] Epoch 69 train_loss=173.6604 val_loss=259.8762
+[VAE] Epoch 70 train_loss=166.8875 val_loss=259.8186
+[VAE] Epoch 71 train_loss=166.3009 val_loss=260.0716
+[VAE] Epoch 72 train_loss=162.8941 val_loss=261.3134
+[VAE] Epoch 73 train_loss=165.9578 val_loss=262.1714
+[VAE] Epoch 74 train_loss=164.8606 val_loss=261.9968
+[VAE] Epoch 75 train_loss=162.8577 val_loss=266.3814
+[VAE] Epoch 76 train_loss=161.7234 val_loss=270.0811
+[VAE] Epoch 77 train_loss=159.9974 val_loss=264.5133
+[VAE] Epoch 78 train_loss=160.3396 val_loss=258.6680
+[VAE] Epoch 79 train_loss=156.3586 val_loss=260.0883
+[VAE] Epoch 80 train_loss=157.5944 val_loss=276.0935
+[VAE] Epoch 81 train_loss=156.9573 val_loss=269.0655
+[VAE] Epoch 82 train_loss=155.8474 val_loss=264.0712
+[VAE] Epoch 83 train_loss=154.2999 val_loss=260.3694
+[VAE] Epoch 84 train_loss=153.4216 val_loss=266.4972
+[VAE] Epoch 85 train_loss=154.2936 val_loss=265.3177
+[VAE] Epoch 86 train_loss=153.3558 val_loss=271.5792
+[VAE] Epoch 87 train_loss=152.3385 val_loss=267.4721
+[VAE] Epoch 88 train_loss=150.1596 val_loss=264.8432
+[VAE] Epoch 89 train_loss=149.5951 val_loss=270.8369
+[VAE] Epoch 90 train_loss=150.5285 val_loss=267.0703
+[VAE] Epoch 91 train_loss=147.9633 val_loss=269.6459
+[VAE] Epoch 92 train_loss=149.2110 val_loss=267.0079
+[VAE] Epoch 93 train_loss=147.4806 val_loss=271.5740
+[VAE] Epoch 94 train_loss=148.1299 val_loss=265.2152
+[VAE] Epoch 95 train_loss=146.0340 val_loss=276.6090
+[VAE] Epoch 96 train_loss=143.7102 val_loss=267.4443
+[VAE] Epoch 97 train_loss=143.8951 val_loss=266.3495
+[VAE] Epoch 98 train_loss=142.1868 val_loss=271.3576
+[VAE] Epoch 99 train_loss=142.6988 val_loss=266.3480
+save debugging file
+[VAE] Restored from cnn_spn_models/full_run_100e_ft25/grid0/fold_2/vae_checkpoints/pt_ckpts_last.pt
+[VAE] train_loss=179.9612 val_loss=254.9828 test_loss=250.0727
+MLP eval [[179.96118852076216], [254.98282335069445], [250.0726925872093]]
+START EMBEDDING ['flatten']
+Embedding shape dataset 0 (1171, 64)
+Embedding shape dataset 1 (430, 64)
+(1171, 3)
+min_instances_slice 234 1171
+[SPN] Warning: n_clusters is not supported by this spflow version, ignoring it.
+TEST Result Acc after SPN training 0.541860465116279 time: 0.0
+STRUCTURE STATS
+---Structure Statistics---
+# nodes             607
+    # sum nodes     6
+    # prod nodes    14
+    # leaf nodes    587
+# params            1186
+# edges             606
+# layers            7
+SPN ROOT weights: [np.float64(0.484201537147737), np.float64(0.515798462852263)]
+BEFORE CNN+SPN TRAIN
+[0.6336805555555556, 1.9148621559143066, np.float64(0.632937555632666), np.float64(0.642504118616145), np.float64(0.6554621848739496), np.float64(0.64891846921797), np.float64(0.6948780230224945)]
+[0.6024305555555556, 2.284031867980957, np.float64(0.60287831636051), np.float64(0.5694444444444444), np.float64(0.6096654275092936), np.float64(0.5888689407540395), np.float64(0.6418996645798772)]
+[0.546875, 2.3619439601898193, np.float64(0.5468084529202724), np.float64(0.5454545454545454), np.float64(0.5340314136125655), np.float64(0.5396825396825397), np.float64(0.5825488972682635)]
+TRAIN CNN+SPN
+number of trainable variables in cnn spn: 18269555
+0 loss [9.99246883e+00 9.04097036e-03 1.96023178e+00 1.04906712e+01]
+val entropy 0 1.3604865074157715 improve False curr acc 0.609375 0.5916774638848189 best acc 0.60287831636051
+curr rec N/A best rec: 100000000.0
+loss 0: 10.68033 - 0.0105 - 2.09113 - 14.72953 - 
+loss 1: 4.56312 - 0.01035 - 0.86865 - 12.79456 - 
+loss 2: 3.54813 - 0.01019 - 0.6666 - 11.29664 - 
+[0.8029513888888888, 0.4028283357620239, np.float64(0.8012175067513541), np.float64(0.7839506172839507), np.float64(0.853781512605042), np.float64(0.8173773129525342), np.float64(0.8966884419836156)]
+[0.7465277777777778, 0.5588780045509338, np.float64(0.7504813339307121), np.float64(0.6964856230031949), np.float64(0.8104089219330854), np.float64(0.7491408934707904), np.float64(0.8214402479929284)]
+[0.7109375, 0.6765336990356445, np.float64(0.7111331145050592), np.float64(0.6941747572815534), np.float64(0.7486910994764397), np.float64(0.7204030226700252), np.float64(0.7627702574397093)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_2/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 3 0.5588779449462891 improve True curr acc 0.7465277777777778 0.7504813339307121 best acc 0.7504813339307121
+curr rec N/A best rec: 100000000.0
+loss 3: 2.95766 - 0.0099 - 0.55 - 9.70801 - 
+loss 4: 2.30229 - 0.00955 - 0.4205 - 8.72296 - 
+loss 5: 2.047 - 0.00941 - 0.37005 - 8.56448 - 
+[0.8871527777777778, 0.27719661593437195, np.float64(0.8892083943092497), np.float64(0.9479768786127167), np.float64(0.826890756302521), np.float64(0.8833034111310593), np.float64(0.965375737368556)]
+[0.7552083333333334, 0.6304038166999817, np.float64(0.7519525810396813), np.float64(0.756), np.float64(0.7026022304832714), np.float64(0.7283236994219653), np.float64(0.8277369434387223)]
+[0.75, 0.7689588069915771, np.float64(0.7494506686921846), np.float64(0.8145695364238411), np.float64(0.643979057591623), np.float64(0.7192982456140351), np.float64(0.8086021213683097)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_2/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 6 0.6304038763046265 improve True curr acc 0.7552083333333334 0.7519525810396813 best acc 0.7519525810396813
+curr rec N/A best rec: 100000000.0
+loss 6: 1.95736 - 0.00942 - 0.35208 - 8.5939 - 
+loss 7: 1.70569 - 0.00932 - 0.30225 - 8.1241 - 
+loss 8: 1.45102 - 0.00931 - 0.25123 - 8.6466 - 
+val entropy 9 0.8449292778968811 improve False curr acc 0.7152777777777778 0.7241563033554121 best acc 0.7519525810396813
+curr rec N/A best rec: 100000000.0
+loss 9: 1.44333 - 0.00925 - 0.24995 - 8.54043 - 
+loss 10: 1.3894 - 0.00926 - 0.23915 - 8.54695 - 
+loss 11: 1.25064 - 0.00923 - 0.21142 - 8.978 - 
+[0.9270833333333334, 0.18172182142734528, np.float64(0.9267745877525158), np.float64(0.9237147595356551), np.float64(0.9361344537815126), np.float64(0.9298831385642737), np.float64(0.9805440308978169)]
+[0.7586805555555556, 1.112771987915039, np.float64(0.7598113413172203), np.float64(0.7256944444444444), np.float64(0.7769516728624535), np.float64(0.7504488330341114), np.float64(0.8189881694779797)]
+[0.7552083333333334, 1.1242035627365112, np.float64(0.7552288202262432), np.float64(0.7512953367875648), np.float64(0.7591623036649214), np.float64(0.7552083333333334), np.float64(0.8223150584597021)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_2/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 12 1.112771987915039 improve True curr acc 0.7586805555555556 0.7598113413172203 best acc 0.7598113413172203
+curr rec N/A best rec: 100000000.0
+loss 12: 1.34417 - 0.00965 - 0.22839 - 9.28057 - 
+loss 13: 1.04437 - 0.00942 - 0.16947 - 8.70378 - 
+loss 14: 0.91474 - 0.0094 - 0.14353 - 9.08394 - 
+[0.9774305555555556, 0.06404630094766617, np.float64(0.9772339815639002), np.float64(0.9733777038269551), np.float64(0.9831932773109243), np.float64(0.9782608695652174), np.float64(0.9976192990661256)]
+[0.7708333333333334, 0.8961622714996338, np.float64(0.7707518496542872), np.float64(0.7472924187725631), np.float64(0.7695167286245354), np.float64(0.7582417582417582), np.float64(0.8362919729242096)]
+[0.7682291666666666, 1.1066360473632812, np.float64(0.7683449529338361), np.float64(0.755), np.float64(0.7905759162303665), np.float64(0.7723785166240409), np.float64(0.8058758104332258)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_2/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 15 0.8961622714996338 improve True curr acc 0.7708333333333334 0.7707518496542872 best acc 0.7707518496542872
+curr rec N/A best rec: 100000000.0
+loss 15: 0.65514 - 0.00902 - 0.09312 - 9.07828 - 
+loss 16: 0.59119 - 0.00901 - 0.08029 - 9.58931 - 
+loss 17: 0.62088 - 0.00887 - 0.08666 - 10.1166 - 
+val entropy 18 1.2850885391235352 improve False curr acc 0.7569444444444444 0.756802247435913 best acc 0.7707518496542872
+curr rec N/A best rec: 100000000.0
+loss 18: 0.66566 - 0.00915 - 0.09451 - 10.03324 - 
+loss 19: 0.6377 - 0.00916 - 0.0888 - 10.41715 - 
+loss 20: 0.70142 - 0.00902 - 0.10216 - 10.27744 - 
+val entropy 21 1.63556969165802 improve False curr acc 0.7482638888888888 0.7504994974752672 best acc 0.7707518496542872
+curr rec N/A best rec: 100000000.0
+loss 21: 0.94829 - 0.00921 - 0.15091 - 9.46997 - 
+loss 22: 0.72583 - 0.00927 - 0.10614 - 9.72933 - 
+loss 23: 0.96018 - 0.00919 - 0.15347 - 9.01618 - 
+[0.9869791666666666, 0.038686349987983704, np.float64(0.9865923389104295), np.float64(0.9769736842105263), np.float64(0.9983193277310924), np.float64(0.9875311720698254), np.float64(0.9998114146915499)]
+[0.765625, 1.29515540599823, np.float64(0.7716176452780839), np.float64(0.703030303030303), np.float64(0.862453531598513), np.float64(0.7746243739565943), np.float64(0.8208469055374594)]
+[0.7552083333333334, 1.2086273431777954, np.float64(0.755500094946152), np.float64(0.7276995305164319), np.float64(0.8115183246073299), np.float64(0.7673267326732673), np.float64(0.8181916827170875)]
+Saved CNN+SPN checkpoint to cnn_spn_models/full_run_100e_ft25/grid0/fold_2/cnn_spn_checkpoints/pt_ckpts_last.pt
+val entropy 24 1.2951552867889404 improve True curr acc 0.765625 0.7716176452780839 best acc 0.7716176452780839
+curr rec N/A best rec: 100000000.0
+loss 24: 0.46058 - 0.00889 - 0.05468 - 9.37243 - 
+fine tune train time 6.0
+save debugging file
+ACC increase: 0.765625 0.6024305555555556 0.16319444444444442
+EVAL TIME OF ONE SPLIT: 9.0
+
+==========================================
+Python script finished at Mon Dec  8 03:53:35 PM EST 2025
+Exit code: 0
+==========================================
