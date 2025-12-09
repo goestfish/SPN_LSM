@@ -27,25 +27,39 @@ def min_loss(x_cf, additional_data,argmax_arr):
     x_cf_mean = x_cf[np.arange(x_cf.shape[0]), arg_max]  # Use advanced indexing
     arg_max_mean =argmax_arr[np.arange(x_cf.shape[0]), arg_max]
     return x_cf_mean,arg_max_mean
-def weighted(x_cf, additional_data,argmax_arr):
-    # create weights in the area [0,1]
-    rescale=rescale_to_01(additional_data)
-    if rescale.ndim == 1:
-        if rescale.shape[0] == argmax_arr.shape[1]:
-            # weights per replicate: shape (K,) -> (1, K)
-            weights = rescale[None, :]
-        elif rescale.shape[0] == argmax_arr.shape[0]:
-            # weights per image: shape (N,) -> (N, 1)
-            weights = rescale[:, None]
-        else:
-            # fallback: uniform weights over replicates
-            weights = np.ones_like(argmax_arr) / argmax_arr.shape[1]
+def weighted(x_cf, additional_data, argmax_arr):
+    """
+    x_cf:        (N, K, ..., ..., ...)  e.g. (num_images, num_reps, 1, H, W)
+    additional_data: used to build weights, can be (N, K), (N,), or (K,)
+    argmax_arr:  (N, K)  argmax per image/replicate
+    """
+    x_cf = np.asarray(x_cf)
+    argmax_arr = np.asarray(argmax_arr)
+
+    # Create weights in [0, 1] from additional_data
+    rescale = rescale_to_01(np.asarray(additional_data))
+
+    N, K = argmax_arr.shape  # num images, num replicates
+
+    # --- Force rescale to have shape (N, K) ---
+    if rescale.shape == (N, K):
+        pass  # already correct
+    elif rescale.shape == (N,):
+        # same weight for all K reps of each image
+        rescale = np.repeat(rescale[:, None], K, axis=1)
+    elif rescale.shape == (K,):
+        # same weights across N images
+        rescale = np.repeat(rescale[None, :], N, axis=0)
     else:
-        # if already 2D or more, try to broadcast directly
-        weights = rescale
+        # fallback: uniform weights over replicates
+        rescale = np.ones((N, K), dtype=float) / float(K)
 
-    arg_max_mean = np.sum(argmax_arr * weights, axis=1)
-    upscale=np.expand_dims(np.expand_dims(np.expand_dims(rescale,axis=-1),axis=-1),axis=-1)
-    x_cf_mean = np.sum(x_cf*upscale, axis=1)
+    # --- Aggregate over replicates for argmax ---
+    arg_max_mean = np.sum(argmax_arr * rescale, axis=1)
 
-    return x_cf_mean,arg_max_mean
+    # --- Use the same weights on x_cf ---
+    # rescale: (N, K) -> (N, K, 1, 1, 1) to match x_cf's trailing dims
+    upscale = rescale[:, :, None, None, None]
+    x_cf_mean = np.sum(x_cf * upscale, axis=1)
+
+    return x_cf_mean, arg_max_mean
