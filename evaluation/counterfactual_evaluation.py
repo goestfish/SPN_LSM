@@ -10,6 +10,38 @@ from counterfactuals.find_many_counterfactuals import make_individual_plot, make
 from evaluation.metrics.fid import compute_validity, compute_fid, compute_MAE, compute_MSE, compute_class_fid, get_importance_region_information, mean_lsp_calculation
 from evaluation.metrics.summarizing_fkts import mean_cf, max_cf, min_loss, weighted
 
+def compute_rel_L2(x_org, x_cf, x_rec, eps: float = 1e-8) -> float:
+    """
+    Compute a relative L2 distance between original images and counterfactuals,
+    normalized by the reconstruction distance.
+
+    rel_L2 = mean( ||x_cf - x_org||_2 / (||x_rec - x_org||_2 + eps) )
+
+    Args:
+        x_org: np.ndarray, shape (N, H, W, C) or similar
+        x_cf:  np.ndarray, same shape as x_org (counterfactuals)
+        x_rec: np.ndarray, same shape as x_org (reconstructions)
+        eps:   small constant to avoid divide-by-zero
+
+    Returns:
+        float: scalar relative L2 distance.
+    """
+    # Squeeze away extra singleton dims
+    x_org = np.squeeze(x_org)
+    x_cf  = np.squeeze(x_cf)
+    x_rec = np.squeeze(x_rec)
+
+    # Ensure first dimension is batch
+    N = x_org.shape[0]
+    x_org_flat = x_org.reshape(N, -1)
+    x_cf_flat  = x_cf.reshape(N, -1)
+    x_rec_flat = x_rec.reshape(N, -1)
+
+    num = np.linalg.norm(x_cf_flat - x_org_flat, axis=1)
+    den = np.linalg.norm(x_rec_flat - x_org_flat, axis=1) + eps
+
+    rel_L2 = num / den
+    return float(np.mean(rel_L2))
 
 def find_and_extract_files(folder_path):
     pattern = re.compile(r"datab([\d-]+)g([\d-]+)(.+)_1000(?:_new)?\.pkl")
