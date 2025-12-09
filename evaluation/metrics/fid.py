@@ -100,18 +100,45 @@ def split_by_class(X: np.ndarray, y: np.ndarray, unique_classes):
     return {cls: X[np.where(y == cls)[0]] for cls in unique_classes}
 
 def compute_class_fid(dataset1, dataset2, dataset3, y_cf_expected_goal, y_org, y_cf_result):
+    """
+    Compute class-wise relative FID (rec vs cf), averaged only over classes
+    that have enough samples in *all* three datasets.
+    """
     y_old = np.mod(y_cf_expected_goal + 1, 2)
     class_labels = np.unique(y_org)
+
     ds_org = split_by_class(dataset1, y_org, class_labels)
-    ds_cf = split_by_class(dataset2, y_cf_result, class_labels)
+    ds_cf  = split_by_class(dataset2, y_cf_result, class_labels)
     ds_rec = split_by_class(dataset3, y_old, class_labels)
+
     rel_FID = 0.0
+    valid_classes = 0
+
     for cls in class_labels:
-        fid_rec = compute_fid(ds_org[cls], ds_rec[cls])
-        fid_cf = compute_fid(ds_org[cls], ds_cf[cls])
+        X_org = ds_org.get(cls, np.empty((0,)))
+        X_cf  = ds_cf.get(cls,  np.empty((0,)))
+        X_rec = ds_rec.get(cls, np.empty((0,)))
+
+        # Skip classes where any dataset is empty or has too few samples
+        if (
+            X_org.size == 0 or X_cf.size == 0 or X_rec.size == 0 or
+            X_org.shape[0] < 2 or X_cf.shape[0] < 2 or X_rec.shape[0] < 2
+        ):
+            continue
+
+        fid_rec = compute_fid(X_org, X_rec)
+        fid_cf  = compute_fid(X_org, X_cf)
+
         rel_FID += (fid_rec - fid_cf)
-    rel_FID /= len(class_labels)
+        valid_classes += 1
+
+    if valid_classes == 0:
+        # Nothing to average over: define 0.0 as "no signal"
+        return 0.0
+
+    rel_FID /= valid_classes
     return float(rel_FID)
+
 
 def compute_MSE(dataset1, dataset2):
     dataset1 = np.squeeze(dataset1)
