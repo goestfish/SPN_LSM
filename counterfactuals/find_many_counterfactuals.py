@@ -481,7 +481,12 @@ def make_individual_plot(image_num, betas, gammas, plot_path,save_file_path_plot
                 save_file_path = base_name + '_1000.pkl'
 
             print('loading', save_file_path, flush=True)
-            all_data_list = pkl.load(open(save_file_path, 'rb'))
+            if not os.path.exists(save_file_path):
+                print(f"[WARNING] Counterfactual file not found, skipping: {save_file_path}")
+                return
+
+            with open(save_file_path, "rb") as f:
+                all_data_list = pkl.load(f)
             all_data = []
             for entry in all_data_list:
                 all_data.extend(entry)
