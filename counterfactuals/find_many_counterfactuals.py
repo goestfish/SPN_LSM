@@ -465,8 +465,22 @@ def make_individual_plot(image_num, betas, gammas, plot_path,save_file_path_plot
     for b_i, beta in enumerate(betas):
         for g_i, gamma in enumerate(gammas):
             #save_file_path = plot_path + 'datab' + str(b_i) + 'g' + str(g_i) + model_name + '_1000.pkl'
-            save_file_path = plot_path + 'datab' + str(beta).replace('.', '-') + 'g' + str(gamma).replace('.',
-                                                                                                          '-') + model_name + '_1000.pkl'
+            base_name = (
+                plot_path
+                + 'datab'
+                + str(beta).replace('.', '-')
+                + 'g'
+                + str(gamma).replace('.', '-')
+                + model_name
+            )
+
+            # try new filename first
+            save_file_path = base_name + '_1000_new.pkl'
+            if not os.path.isfile(save_file_path):
+                # fall back to old naming if needed
+                save_file_path = base_name + '_1000.pkl'
+
+            print('loading', save_file_path, flush=True)
             all_data_list = pkl.load(open(save_file_path, 'rb'))
             all_data = []
             for entry in all_data_list:
@@ -547,8 +561,20 @@ def make_raw_plot(image_num, betas, gammas, plot_path,save_file_path_plot,model_
 
     for b_i, beta in enumerate(betas):
         for g_i, gamma in enumerate(gammas):
-            save_file_path = plot_path + 'datab' + str(beta).replace('.', '-') + 'g' + str(gamma).replace('.',
-                                                                                                          '-') + model_name + '_1000.pkl'
+            base_name = (
+                plot_path
+                + 'datab'
+                + str(beta).replace('.', '-')
+                + 'g'
+                + str(gamma).replace('.', '-')
+                + model_name
+            )
+
+            save_file_path = base_name + '_1000_new.pkl'
+            if not os.path.isfile(save_file_path):
+                save_file_path = base_name + '_1000.pkl'
+
+            print('loading', save_file_path, flush=True)
             all_data_list = pkl.load(open(save_file_path, 'rb'))
             all_data = []
             for entry in all_data_list:
