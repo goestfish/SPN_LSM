@@ -43,11 +43,26 @@ def _stats(feats: np.ndarray):
     return mu, sigma
 
 def _frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
-    # Ensure correct shapes
+    # Ensure vector / matrix shapes
     mu1 = np.atleast_1d(mu1)
     mu2 = np.atleast_1d(mu2)
     sigma1 = np.atleast_2d(sigma1)
     sigma2 = np.atleast_2d(sigma2)
+
+    # If one covariance is scalar-like (1x1) and the other is DxD,
+    # promote the scalar variance to an isotropic DxD covariance
+    if sigma1.shape != sigma2.shape:
+        if sigma1.shape == (1, 1) and sigma2.shape[0] == sigma2.shape[1]:
+            var = float(sigma1[0, 0])
+            sigma1 = np.eye(sigma2.shape[0]) * var
+        elif sigma2.shape == (1, 1) and sigma1.shape[0] == sigma1.shape[1]:
+            var = float(sigma2[0, 0])
+            sigma2 = np.eye(sigma1.shape[0]) * var
+        else:
+            # Fallback: align to the smaller dimensionality (very defensive)
+            d = min(sigma1.shape[0], sigma2.shape[0])
+            sigma1 = sigma1[:d, :d]
+            sigma2 = sigma2[:d, :d]
 
     diff = mu1 - mu2
 
@@ -58,10 +73,10 @@ def _frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     if np.iscomplexobj(covmean):
         covmean = covmean.real
 
-    # Add small epsilon to diagonal if needed for numerical stability
+    # Add small epsilon on the diagonal if needed for numerical stability
     if not np.isfinite(covmean).all():
         offset = np.eye(sigma1.shape[0]) * eps
-        covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
+        covmean, _ = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset), disp=False)
         if np.iscomplexobj(covmean):
             covmean = covmean.real
 
