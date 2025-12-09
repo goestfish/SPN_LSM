@@ -212,6 +212,10 @@ def cf_performance_to_latex_summary(all_results_clf, all_params):
         print(dataset)
         df_clf_filter = df_clf[df_clf['dataset'] == dataset]
 
+        if "Switch epoch" not in df_clf_filter.columns:
+            df_clf_filter["Switch epoch"] = np.nan
+
+
         # Add parameter differences to summary dataframe
         summary_df_clf = df_clf_filter.groupby(["vae_name", "beta", "gamma", "model_name"]).agg(
             L2=("L2", "mean"),
