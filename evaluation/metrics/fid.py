@@ -43,15 +43,36 @@ def _stats(feats: np.ndarray):
     return mu, sigma
 
 def _frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
+    # Ensure correct shapes
+    mu1 = np.atleast_1d(mu1)
+    mu2 = np.atleast_1d(mu2)
+    sigma1 = np.atleast_2d(sigma1)
+    sigma2 = np.atleast_2d(sigma2)
+
     diff = mu1 - mu2
+
+    # Product of covariance matrices
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+
+    # If imaginary components appear due to numerical issues, drop them
+    if np.iscomplexobj(covmean):
+        covmean = covmean.real
+
+    # Add small epsilon to diagonal if needed for numerical stability
     if not np.isfinite(covmean).all():
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
-    if np.iscomplexobj(covmean):
-        covmean = covmean.real
+        if np.iscomplexobj(covmean):
+            covmean = covmean.real
+
     tr_covmean = np.trace(covmean)
-    return diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2.0 * tr_covmean
+
+    return float(
+        diff.dot(diff)
+        + np.trace(sigma1)
+        + np.trace(sigma2)
+        - 2.0 * tr_covmean
+    )
 
 def compute_fid(dataset1: np.ndarray, dataset2: np.ndarray) -> float:
     f1 = _inception_activations(dataset1)
